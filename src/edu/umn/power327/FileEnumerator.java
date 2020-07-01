@@ -23,6 +23,9 @@ public class FileEnumerator {
         return list;
     }
 
+    /**
+     * These are the functions that will be called on each file as we walk the file tree.
+     */
     public static class FileEnumVisitor extends SimpleFileVisitor<Path> {
 
         public ArrayList<Path> list;
@@ -31,7 +34,7 @@ public class FileEnumerator {
             this.list = list;
         }
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             this.list.add(file);
             return FileVisitResult.CONTINUE;
         }
