@@ -12,5 +12,6 @@ public class Main {
         // and we don't need this to be thread safe
         ArrayList<Path> fileList = enumerator.enumerateFiles();
         int listSize = fileList.size(); // will use as a modulus for rng
+        System.out.println("list size: " + listSize);
     }
 }

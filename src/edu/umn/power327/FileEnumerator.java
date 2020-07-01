@@ -10,7 +10,7 @@ public class FileEnumerator {
 
     public ArrayList<Path> enumerateFiles() {
         ArrayList<Path> list = new ArrayList<>();
-        FileEnumVisitor visitor = new FileEnumVisitor();
+        FileEnumVisitor visitor = new FileEnumVisitor(list);
         FileSystem fs = FileSystems.getDefault();
         for (Path p : fs.getRootDirectories()) {
             try {
@@ -23,10 +23,21 @@ public class FileEnumerator {
         return list;
     }
 
-    public static class FileEnumVisitor extends SimpleFileVisitor {
+    public static class FileEnumVisitor extends SimpleFileVisitor<Path> {
+
+        public ArrayList<Path> list;
+
+        public FileEnumVisitor(ArrayList<Path> list) {
+            this.list = list;
+        }
         @Override
-        public FileVisitResult visitFile(Object file, BasicFileAttributes attrs) throws IOException {
-            return super.visitFile(file, attrs);
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            this.list.add(file);
+            return FileVisitResult.CONTINUE;
+        }
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException e) {
+            return FileVisitResult.SKIP_SUBTREE;
         }
     }
 }
