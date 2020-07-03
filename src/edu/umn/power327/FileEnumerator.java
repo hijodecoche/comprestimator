@@ -20,6 +20,7 @@ public class FileEnumerator {
             }
 
         }
+        System.out.println("exiting enumerator");
         return list;
     }
 

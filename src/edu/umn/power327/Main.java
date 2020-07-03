@@ -49,12 +49,15 @@ public class Main {
                 // probably print something if curfile is null, distinct from
                 // when curfile is too large for readAllBytes
                 e.printStackTrace();
-                continue;
+                System.out.println("Path: " + curfile.toString());
+                return; //continue;
             }
-            // 2) TIMER START
+            // 2) compressor.setInput(inputByte[]);
+            compressor.setInput(input);
+            // 3) TIMER START
             start = System.currentTimeMillis();
-            // 3) compressor.setInput(inputByte[]);
             // 4) compressor.deflate(outputByte[]);
+            compressor.deflate(output);
             // 5) TIMER STOP
             stop = System.currentTimeMillis();
             // 6) reset compressor
