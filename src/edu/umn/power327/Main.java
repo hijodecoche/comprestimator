@@ -45,12 +45,14 @@ public class Main {
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
                 }
+            } catch (AccessDeniedException e) {
+                continue;
             } catch (IOException e) {
                 // probably print something if curfile is null, distinct from
                 // when curfile is too large for readAllBytes
                 e.printStackTrace();
-                System.out.println("Path: " + curfile.toString());
-                return; //continue;
+//                System.out.println("Path: " + curfile.toString());
+                continue;
             }
             // 2) compressor.setInput(inputByte[]);
             compressor.setInput(input);
