@@ -18,7 +18,7 @@ public class Main {
         // and we don't need this to be thread safe
         ArrayList<Path> fileList = enumerator.enumerateFiles();
         int range = fileList.size(); // will use as a modulus for rng
-        int halfSize = range / 2;
+        int halfSize = range / 2; // this is just for testing to make stuff terminate early
 
         Random random = new Random();
         Deflater compressor = new Deflater();
@@ -40,7 +40,7 @@ public class Main {
                 output = new byte[input.length + 1];
                 try {
                     MessageDigest md = MessageDigest.getInstance("SHA-256");
-                    hash = Arrays.toString(md.digest(input));
+                    hash = stringify(md.digest(input));
 //                    System.out.println(hash);
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
@@ -68,5 +68,18 @@ public class Main {
             // store the info in the database
         }
 //        System.out.println("list size: " + listSize);
+    }
+
+    public static String stringify(byte[] digest) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : digest) {
+            String hex = Integer.toHexString(0xFF & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+
+        return hexString.toString();
     }
 }
