@@ -25,7 +25,7 @@ public class DBAdapter {
     public void createTables() throws SQLException {
         String deflateTable = "CREATE TABLE IF NOT EXISTS deflate_results(\n"
                 + "fileID INTEGER PRIMARY KEY ASC,\n"
-                + "hash CHAR(16) NOT NULL,\n"
+                + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size DOUBLE NOT NULL,\n"
                 + "compress_size DOUBLE NOT NULL,\n"
@@ -33,7 +33,7 @@ public class DBAdapter {
                 + ");";
         String LZ4Table = "CREATE TABLE IF NOT EXISTS lz4_results(\n"
                 + "fileID INT PRIMARY KEY ASC,\n"
-                + "hash CHAR(16) NOT NULL,\n"
+                + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size INT NOT NULL,\n"
                 + "compress_size INT NOT NULL,\n"
@@ -41,7 +41,7 @@ public class DBAdapter {
                 + ");";
         String LZMATable = "CREATE TABLE IF NOT EXISTS lzma_results(\n"
                 + "fileID INT PRIMARY KEY ASC,\n"
-                + "hash CHAR(16) NOT NULL,\n"
+                + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size INT NOT NULL,\n"
                 + "compress_size INT NOT NULL,\n"
@@ -68,8 +68,8 @@ public class DBAdapter {
                              double compressSize, int compressTime) throws SQLException {
         Statement s = con.createStatement();
 
-        s.executeQuery("INSERT INTO " + table + " (hash, file_ext, orig_size, "
-                + "compress_size, compress_time) VALUES(" + hash + ", " + file_ext + ", "
+        s.execute("INSERT INTO " + table + " (hash, file_ext, orig_size, "
+                + "compress_size, compress_time) VALUES('" + hash + "', '" + file_ext + "', "
                 + origSize + ", " + compressSize + ", " + compressTime + ");");
     }
 }
