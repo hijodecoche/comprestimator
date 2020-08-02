@@ -14,10 +14,13 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 	// code goes here omg!
+        System.out.println("Welcome to comprestimator!");
         FileEnumerator enumerator = new FileEnumerator();
         // ArrayList should be better than Vector, since ArrayList size grows slower
         // and we don't need this to be thread safe
+        System.out.println("Beginning filesystem enumeration...");
         ArrayList<Path> fileList = enumerator.enumerateFiles();
+        System.out.println("...enumeration complete.");
         int range = fileList.size(); // will use as a modulus for rng
         int halfSize = range / 2; // this is just for testing to make stuff terminate early
 
@@ -29,7 +32,7 @@ public class Main {
         String hash;
         byte[] input, output = new byte[1073741824];
         long start, stop, start2, stop2;
-        int compressSize;
+        int compressSize, compressSize2;
 
         while(range > halfSize) {
             // get a random file and swap it with last in fileList (first out-of-range file)
@@ -57,17 +60,27 @@ public class Main {
             compressor.finish(); // signals that no new input will enter the buffer
             // 3) TIMER START
             start = System.currentTimeMillis();
-            // 4) compressor.deflate(outputByte[]);
+            // 4) deflate
             compressSize = compressor.deflate(output);
             // 5) TIMER STOP
             stop = System.currentTimeMillis();
             // 6) reset compressor
+            compressor.reset();
+            // repeat it
+            compressor.setInput(input);
+            compressor.finish();
+            start2 = System.currentTimeMillis();
+            compressSize2 = compressor.deflate(output);
+            stop2 = System.currentTimeMillis();
             compressor.reset();
 
             // store the info in the database
             try {
                 dbAdapter.insertResult("deflate_results", hash,
                         "txt", input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
+
+                dbAdapter.insertResult("deflate_results", hash,
+                        "txt", input.length / 1000.0, compressSize2 / 1000.0, (int)(stop2 - start2) / 1000);
 
             } catch (SQLException e) {
                 e.printStackTrace();
