@@ -57,7 +57,7 @@ class SingleFileTest {
         // try DB stuff here
         try {
             dbAdapter.insertResult("deflate_results", hash,
-                    "txt", input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
+                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -75,5 +75,13 @@ class SingleFileTest {
         }
 
         return hexString.toString();
+    }
+
+    public static String getExt(Path path) {
+        String s = path.toString();
+        if(s.matches("\\.[^\\./\\\\]+$")) {
+            return s.substring(s.lastIndexOf(".") + 1);
+        }
+        else return "";
     }
 }

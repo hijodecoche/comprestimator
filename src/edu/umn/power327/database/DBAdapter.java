@@ -32,7 +32,7 @@ public class DBAdapter {
                 + "compress_time INTEGER NOT NULL\n"
                 + ");";
         String LZ4Table = "CREATE TABLE IF NOT EXISTS lz4_results(\n"
-                + "fileID INT PRIMARY KEY ASC,\n"
+                + "fileID INTEGER PRIMARY KEY ASC,\n"
                 + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size INT NOT NULL,\n"
@@ -40,7 +40,7 @@ public class DBAdapter {
                 + "compress_time INT NOT NULL\n"
                 + ");";
         String LZMATable = "CREATE TABLE IF NOT EXISTS lzma_results(\n"
-                + "fileID INT PRIMARY KEY ASC,\n"
+                + "fileID INTEGER PRIMARY KEY ASC,\n"
                 + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size INT NOT NULL,\n"
@@ -48,14 +48,13 @@ public class DBAdapter {
                 + "compress_time INT NOT NULL\n"
                 + ");";
         Statement stmt = con.createStatement();
-        System.out.println(deflateTable);
+//        System.out.println(deflateTable);
         stmt.execute(deflateTable);
-//        stmt.execute(LZ4Table);
+        stmt.execute(LZ4Table);
 //        stmt.execute(LZMATable);
     }
 
     /**
-     * TODO: Make this an interface or java version of a struct!!!
      * @param table name of compressor used + "_results"
      * @param hash 16-byte SHA256 hash of file
      * @param file_ext file's extension
