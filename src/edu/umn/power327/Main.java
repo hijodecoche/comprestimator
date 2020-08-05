@@ -1,4 +1,5 @@
 package edu.umn.power327;
+import SevenZip.LzmaEncoder;
 import edu.umn.power327.database.DBAdapter;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
@@ -29,6 +30,7 @@ public class Main {
         Deflater deflater = new Deflater();
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
+        LzmaEncoder lzmaEncoder = new LzmaEncoder();
         String hash;
         byte[] input, output = new byte[1073741824];
         long start, stop;
@@ -76,6 +78,19 @@ public class Main {
             // store lz4 results
             try {
                 dbAdapter.insertResult("lz4_results", hash,
+                        getExt(path), input.length / 1000.0, compressSize / 1000.0,
+                        (int)(stop - start) / 1000);
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            start = System.currentTimeMillis();
+            compressSize = lzmaEncoder.encode(input);
+            stop = System.currentTimeMillis();
+            // store lzma results
+            try {
+                dbAdapter.insertResult("lzma_results", hash,
                         getExt(path), input.length / 1000.0, compressSize / 1000.0,
                         (int)(stop - start) / 1000);
 

@@ -1,6 +1,9 @@
 package edu.umn.power327;
 
+import SevenZip.LzmaEncoder;
 import edu.umn.power327.database.DBAdapter;
+import net.jpountz.lz4.LZ4Compressor;
+import net.jpountz.lz4.LZ4Factory;
 
 import java.nio.file.*;
 import java.security.MessageDigest;
@@ -33,28 +36,28 @@ class SingleFileTest {
                 return;
             }
         }
-        Deflater compressor = new Deflater();
+        Deflater deflater = new Deflater();
+        LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
+        LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
+        LzmaEncoder lzmaEncoder = new LzmaEncoder();
         String hash;
         byte[] input, output = new byte[1073741824];
         long start, stop;
         int compressSize;
         // do compression test here
         input = Files.readAllBytes(path);
-//        output = new byte[input.length + 1];
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        hash = stringify(md.digest(input));
-        System.out.println(hash);
+        hash = getHash(input);
         // 2) compressor.setInput(inputByte[]);
-        compressor.setInput(input);
-        compressor.finish();
+        deflater.setInput(input);
+        deflater.finish();
         // 3) TIMER START
         start = System.currentTimeMillis();
-        // 4) compressor.deflate(outputByte[]);
-        compressSize = compressor.deflate(output);
+        // 4) deflate
+        compressSize = deflater.deflate(output);
         // 5) TIMER STOP
         stop = System.currentTimeMillis();
 
-        // try DB stuff here
+        // store deflater results
         try {
             dbAdapter.insertResult("deflate_results", hash,
                     getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
@@ -62,9 +65,37 @@ class SingleFileTest {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        start = System.currentTimeMillis();
+        compressSize = lz4Compressor.compress(input, output);
+        stop = System.currentTimeMillis();
+
+        // store lz4
+        try {
+            dbAdapter.insertResult("lz4_results", hash,
+                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        start = System.currentTimeMillis();
+        compressSize = lzmaEncoder.encode(input);
+        stop = System.currentTimeMillis();
+
+        // store lzma
+        try {
+            dbAdapter.insertResult("lzma_results", hash,
+                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static String stringify(byte[] digest) {
+    public static String getHash(byte[] input) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] digest = md.digest(input);
         StringBuilder hexString = new StringBuilder();
         for (byte b : digest) {
             String hex = Integer.toHexString(0xFF & b);
@@ -73,7 +104,6 @@ class SingleFileTest {
             }
             hexString.append(hex);
         }
-
         return hexString.toString();
     }
 

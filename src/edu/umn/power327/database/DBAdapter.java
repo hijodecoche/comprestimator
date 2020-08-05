@@ -51,7 +51,7 @@ public class DBAdapter {
 //        System.out.println(deflateTable);
         stmt.execute(deflateTable);
         stmt.execute(LZ4Table);
-//        stmt.execute(LZMATable);
+        stmt.execute(LZMATable);
     }
 
     /**
