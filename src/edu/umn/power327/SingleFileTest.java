@@ -5,6 +5,7 @@ import edu.umn.power327.database.DBAdapter;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 
+import java.awt.*;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.sql.SQLException;
@@ -14,6 +15,8 @@ import java.util.zip.Deflater;
 class SingleFileTest {
 
     public static void main(String[] args) throws Exception {
+        Robot robot = new Robot();
+        Point mousePoint = MouseInfo.getPointerInfo().getLocation();
         DBAdapter dbAdapter = new DBAdapter();
         dbAdapter.createTables();
         FileSystem fs = FileSystems.getDefault();
@@ -36,6 +39,7 @@ class SingleFileTest {
                 return;
             }
         }
+        robot.mouseMove(mousePoint.x, mousePoint.y);
         Deflater deflater = new Deflater();
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
@@ -86,7 +90,7 @@ class SingleFileTest {
         // store lzma
         try {
             dbAdapter.insertResult("lzma_results", hash,
-                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
+                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start));
 
         } catch (SQLException e) {
             e.printStackTrace();

@@ -4,6 +4,7 @@ import edu.umn.power327.database.DBAdapter;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 
+import java.awt.*;
 import java.io.IOException;
 import java.nio.file.*;
 import java.security.MessageDigest;
@@ -17,6 +18,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
 	// code goes here omg!
         System.out.println("Welcome to comprestimator!");
+        System.out.println("---------------- \\(^o^)/ ----------------");
         FileEnumerator enumerator = new FileEnumerator();
         // ArrayList should be better than Vector, since ArrayList size grows slower
         // and we don't need this to be thread safe
@@ -27,6 +29,8 @@ public class Main {
 
         DBAdapter dbAdapter = new DBAdapter();
         dbAdapter.createTables();
+        Robot robot = new Robot();
+        Point mousePoint = MouseInfo.getPointerInfo().getLocation();
         Deflater deflater = new Deflater();
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
@@ -71,6 +75,7 @@ public class Main {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            robot.mouseMove(mousePoint.x, mousePoint.y);
 
             start = System.currentTimeMillis();
             compressSize = lz4Compressor.compress(input, output);
@@ -92,11 +97,13 @@ public class Main {
             try {
                 dbAdapter.insertResult("lzma_results", hash,
                         getExt(path), input.length / 1000.0, compressSize / 1000.0,
-                        (int)(stop - start) / 1000);
+                        (int)(stop - start));
 
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            mousePoint = MouseInfo.getPointerInfo().getLocation();
+            robot.mouseMove(mousePoint.x, mousePoint.y);
 
         }
 //        System.out.println("list size: " + listSize);

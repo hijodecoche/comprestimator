@@ -29,22 +29,22 @@ public class DBAdapter {
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size DOUBLE NOT NULL,\n"
                 + "compress_size DOUBLE NOT NULL,\n"
-                + "compress_time INTEGER NOT NULL\n"
+                + "compress_time INT NOT NULL\n"
                 + ");";
         String LZ4Table = "CREATE TABLE IF NOT EXISTS lz4_results(\n"
                 + "fileID INTEGER PRIMARY KEY ASC,\n"
                 + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
-                + "orig_size INT NOT NULL,\n"
-                + "compress_size INT NOT NULL,\n"
+                + "orig_size DOUBLE NOT NULL,\n"
+                + "compress_size DOUBLE NOT NULL,\n"
                 + "compress_time INT NOT NULL\n"
                 + ");";
         String LZMATable = "CREATE TABLE IF NOT EXISTS lzma_results(\n"
                 + "fileID INTEGER PRIMARY KEY ASC,\n"
                 + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
-                + "orig_size INT NOT NULL,\n"
-                + "compress_size INT NOT NULL,\n"
+                + "orig_size DOUBLE NOT NULL,\n"
+                + "compress_size DOUBLE NOT NULL,\n"
                 + "compress_time INT NOT NULL\n"
                 + ");";
         Statement stmt = con.createStatement();
