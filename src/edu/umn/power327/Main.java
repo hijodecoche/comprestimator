@@ -20,8 +20,6 @@ public class Main {
         System.out.println("Welcome to comprestimator!");
         System.out.println("---------------- \\(^o^)/ ----------------");
         FileEnumerator enumerator = new FileEnumerator();
-        // ArrayList should be better than Vector, since ArrayList size grows slower
-        // and we don't need this to be thread safe
         System.out.println("Beginning filesystem enumeration...");
         ArrayList<Path> fileList = enumerator.enumerateFiles();
         Collections.shuffle(fileList);
@@ -29,74 +27,77 @@ public class Main {
 
         DBAdapter dbAdapter = new DBAdapter();
         dbAdapter.createTables();
-        Robot robot = new Robot();
+
+        Robot robot = new Robot(); // hacky way to keep computer awake
         Point mousePoint = MouseInfo.getPointerInfo().getLocation();
+
+        // initialize compressors
         Deflater deflater = new Deflater();
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
         LzmaEncoder lzmaEncoder = new LzmaEncoder();
+
+        // initialize results variables
         String hash;
         byte[] input, output = new byte[1073741824];
         long start, stop;
         int compressSize;
 
         for(Path path : fileList) {
-            // 1) turn file into byte[] and get sha256 hash
+            // turn file into byte[] and get sha256 hash
             try {
                 input = Files.readAllBytes(path);
                 hash = getHash(input);
             } catch (AccessDeniedException e) {
                 continue;
             } catch (IOException e) {
-                // probably print something if curfile is null, distinct from
-                // when curfile is too large for readAllBytes
                 e.printStackTrace();
-//                System.out.println("Path: " + curfile.toString());
                 continue;
             }
-            // 2) set compressor input
+
+            // BEGIN DEFLATE
             deflater.setInput(input);
             deflater.finish(); // signals that no new input will enter the buffer
-            // 3) TIMER START
-            start = System.currentTimeMillis();
-            // 4) deflate
+            start = System.currentTimeMillis(); // start timer
             compressSize = deflater.deflate(output);
-            // 5) TIMER STOP
-            stop = System.currentTimeMillis();
-            // 6) reset compressor
+            stop = System.currentTimeMillis(); // stop timer
             deflater.reset();
 
             // store deflate results in the database
             try {
-                dbAdapter.insertResult("deflate_results", hash,
-                        getExt(path), input.length / 1000.0, compressSize / 1000.0,
-                        (int)(stop - start) / 1000);
+                dbAdapter.insertResult("deflate_results", hash, getExt(path),
+                        input.length / 1000.0, compressSize / 1000.0,
+                        (int)(stop - start));
 
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            robot.mouseMove(mousePoint.x, mousePoint.y);
+            robot.mouseMove(mousePoint.x, mousePoint.y); // keep computer awake
+            // END DEFLATE
 
+            // BEGIN LZ4
             start = System.currentTimeMillis();
             compressSize = lz4Compressor.compress(input, output);
             stop = System.currentTimeMillis();
             // store lz4 results
             try {
-                dbAdapter.insertResult("lz4_results", hash,
-                        getExt(path), input.length / 1000.0, compressSize / 1000.0,
-                        (int)(stop - start) / 1000);
+                dbAdapter.insertResult("lz4_results", hash, getExt(path),
+                        input.length / 1000.0, compressSize / 1000.0,
+                        (int)(stop - start));
 
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            // END LZ4
 
+            // BEGIN LZMA
             start = System.currentTimeMillis();
             compressSize = lzmaEncoder.encode(input);
             stop = System.currentTimeMillis();
             // store lzma results
             try {
-                dbAdapter.insertResult("lzma_results", hash,
-                        getExt(path), input.length / 1000.0, compressSize / 1000.0,
+                dbAdapter.insertResult("lzma_results", hash, getExt(path),
+                        input.length / 1000.0, compressSize / 1000.0,
                         (int)(stop - start));
 
             } catch (SQLException e) {
@@ -104,9 +105,9 @@ public class Main {
             }
             mousePoint = MouseInfo.getPointerInfo().getLocation();
             robot.mouseMove(mousePoint.x, mousePoint.y);
+            // END LZMA
 
         }
-//        System.out.println("list size: " + listSize);
     }
 
     public static String getHash(byte[] input) throws Exception {
