@@ -64,7 +64,7 @@ class SingleFileTest {
         // store deflater results
         try {
             dbAdapter.insertResult("deflate_results", hash,
-                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
+                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start));
 
         } catch (SQLException e) {
             e.printStackTrace();

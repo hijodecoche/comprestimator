@@ -1,6 +1,7 @@
 package edu.umn.power327.database;
 
 import java.sql.*;
+import java.util.Objects;
 
 /**
  * Interacts with local SQLite DB.
@@ -11,10 +12,13 @@ import java.sql.*;
  */
 public class DBAdapter {
     private final Connection con;
-    public String url = "jdbc:sqlite:C:/sqlite/test.db";
 
     public DBAdapter() throws SQLException {
-        con = DriverManager.getConnection(url);
+        if(Objects.equals(System.getProperty("os.name"), "Windows")) {
+            con = DriverManager.getConnection("jdbc:sqlite:%userprofile%/test.db");
+        } else { // should work for *nix systems
+            con = DriverManager.getConnection("jdbc:sqlite:~/test.db");
+        }
     }
 
     /**

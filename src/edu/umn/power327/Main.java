@@ -53,8 +53,12 @@ public class Main {
             } catch (IOException e) {
                 e.printStackTrace();
                 continue;
+            } catch (OutOfMemoryError e) {
+                System.out.println(path.toString());
+                continue;
             }
 
+            ///////////////////////////////////////////////////////
             // BEGIN DEFLATE
             deflater.setInput(input);
             deflater.finish(); // signals that no new input will enter the buffer
@@ -75,6 +79,7 @@ public class Main {
             robot.mouseMove(mousePoint.x, mousePoint.y); // keep computer awake
             // END DEFLATE
 
+            ///////////////////////////////////////////////////////
             // BEGIN LZ4
             start = System.currentTimeMillis();
             compressSize = lz4Compressor.compress(input, output);
@@ -90,6 +95,7 @@ public class Main {
             }
             // END LZ4
 
+            ///////////////////////////////////////////////////////
             // BEGIN LZMA
             start = System.currentTimeMillis();
             compressSize = lzmaEncoder.encode(input);
@@ -107,7 +113,10 @@ public class Main {
             robot.mouseMove(mousePoint.x, mousePoint.y);
             // END LZMA
 
-        }
+            // request garbage collection to reduce change of OOM error
+            input = null;
+            System.gc();
+        } // END FOR-LOOP
     }
 
     public static String getHash(byte[] input) throws Exception {
