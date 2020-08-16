@@ -14,11 +14,7 @@ public class DBAdapter {
     private final Connection con;
 
     public DBAdapter() throws SQLException {
-        if(Objects.equals(System.getProperty("os.name"), "Windows")) {
-            con = DriverManager.getConnection("jdbc:sqlite:%userprofile%/test.db");
-        } else { // should work for *nix systems
-            con = DriverManager.getConnection("jdbc:sqlite:~/test.db");
-        }
+        con = DriverManager.getConnection("jdbc:sqlite:test.db");
     }
 
     /**
