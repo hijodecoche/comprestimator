@@ -6,7 +6,6 @@ import java.util.Objects;
 /**
  * Interacts with local SQLite DB.
  * TODO: Is 8 chars enough for file extension?
- * TODO: Ctor should detect filesystem to determine db location.
  * Will hold file sha256 hash, unique fileID, compress time in millis,
  * orig and compressed file sizes in bytes.
  */
@@ -48,7 +47,6 @@ public class DBAdapter {
                 + "compress_time INT NOT NULL\n"
                 + ");";
         Statement stmt = con.createStatement();
-//        System.out.println(deflateTable);
         stmt.execute(deflateTable);
         stmt.execute(LZ4Table);
         stmt.execute(LZMATable);

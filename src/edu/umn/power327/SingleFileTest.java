@@ -113,7 +113,8 @@ class SingleFileTest {
 
     public static String getExt(Path path) {
         String s = path.toString();
-        if(s.matches("\\.[^\\./\\\\]+$")) {
+        int index = s.lastIndexOf('.');
+        if(index > 0 && s.charAt(index - 1) != '\\' && s.charAt(index - 1) != '/') {
             return s.substring(s.lastIndexOf(".") + 1);
         }
         else return "";
