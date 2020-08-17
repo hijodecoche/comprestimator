@@ -38,7 +38,7 @@ public class Main {
         LzmaEncoder lzmaEncoder = new LzmaEncoder();
 
         // initialize results variables
-        String hash;
+        String hash, ext;
         byte[] input, output = new byte[1073741824];
         long start, stop;
         int compressSize;
@@ -48,6 +48,7 @@ public class Main {
             try {
                 input = Files.readAllBytes(path);
                 hash = getHash(input);
+                ext = getExt(path);
             } catch (AccessDeniedException e) {
                 continue;
             } catch (IOException e) {
@@ -69,7 +70,7 @@ public class Main {
 
             // store deflate results in the database
             try {
-                dbAdapter.insertResult("deflate_results", hash, getExt(path),
+                dbAdapter.insertResult("deflate_results", hash, ext,
                         input.length / 1000.0, compressSize / 1000.0,
                         (int)(stop - start));
 
@@ -86,7 +87,7 @@ public class Main {
             stop = System.currentTimeMillis();
             // store lz4 results
             try {
-                dbAdapter.insertResult("lz4_results", hash, getExt(path),
+                dbAdapter.insertResult("lz4_results", hash, ext,
                         input.length / 1000.0, compressSize / 1000.0,
                         (int)(stop - start));
 
@@ -102,7 +103,7 @@ public class Main {
             stop = System.currentTimeMillis();
             // store lzma results
             try {
-                dbAdapter.insertResult("lzma_results", hash, getExt(path),
+                dbAdapter.insertResult("lzma_results", hash, ext,
                         input.length / 1000.0, compressSize / 1000.0,
                         (int)(stop - start));
 
@@ -113,9 +114,6 @@ public class Main {
             robot.mouseMove(mousePoint.x, mousePoint.y);
             // END LZMA
 
-            // request garbage collection to reduce change of OOM error
-            input = null;
-            System.gc();
         } // END FOR-LOOP
     }
 
