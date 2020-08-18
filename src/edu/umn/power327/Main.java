@@ -101,6 +101,7 @@ public class Main {
             start = System.currentTimeMillis();
             compressSize = lzmaEncoder.encode(input);
             stop = System.currentTimeMillis();
+            lzmaEncoder.reset();
             // store lzma results
             try {
                 dbAdapter.insertResult("lzma_results", hash, ext,
