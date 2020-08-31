@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.EnumSet;
 
 public class FileEnumerator {
 
@@ -14,7 +13,7 @@ public class FileEnumerator {
         FileSystem fs = FileSystems.getDefault();
         for (Path p : fs.getRootDirectories()) {
             try {
-                Files.walkFileTree(p, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, visitor);
+                Files.walkFileTree(p, visitor);
             } catch (IOException e) {
                 e.printStackTrace();
             }
