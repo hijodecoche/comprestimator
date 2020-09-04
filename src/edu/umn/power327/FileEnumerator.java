@@ -35,7 +35,9 @@ public class FileEnumerator {
         }
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            this.list.add(file);
+            if (!file.startsWith("proc")) {
+                this.list.add(file);
+            }
             return FileVisitResult.CONTINUE;
         }
         @Override
