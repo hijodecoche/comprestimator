@@ -19,6 +19,7 @@ public class Main {
 	// code goes here omg!
         System.out.println("Welcome to comprestimator!");
         System.out.println("---------------- \\(^o^)/ ----------------");
+
         FileEnumerator enumerator = new FileEnumerator();
         System.out.println("Beginning filesystem enumeration...");
         ArrayList<Path> fileList = enumerator.enumerateFiles();
@@ -71,7 +72,7 @@ public class Main {
             // store deflate results in the database
             try {
                 dbAdapter.insertResult("deflate_results", hash, ext,
-                        input.length / 1000.0, compressSize / 1000.0,
+                        input.length / 1024.0, compressSize / 1024.0,
                         (int)(stop - start));
 
             } catch (SQLException e) {
@@ -88,7 +89,7 @@ public class Main {
             // store lz4 results
             try {
                 dbAdapter.insertResult("lz4_results", hash, ext,
-                        input.length / 1000.0, compressSize / 1000.0,
+                        input.length / 1024.0, compressSize / 1024.0,
                         (int)(stop - start));
 
             } catch (SQLException e) {
@@ -105,7 +106,7 @@ public class Main {
             // store lzma results
             try {
                 dbAdapter.insertResult("lzma_results", hash, ext,
-                        input.length / 1000.0, compressSize / 1000.0,
+                        input.length / 1024.0, compressSize / 1024.0,
                         (int)(stop - start));
 
             } catch (SQLException e) {
@@ -134,10 +135,12 @@ public class Main {
 
     public static String getExt(Path path) {
         String s = path.toString();
-        int index = s.lastIndexOf('.');
-        if(index > 0 && s.charAt(index - 1) != '\\' && s.charAt(index - 1) != '/') {
-            return s.substring(s.lastIndexOf(".") + 1);
+        if(s.matches("\\.[^\\./\\\\]+$")) {
+            int index = s.lastIndexOf('.');
+            if(index > 0 && s.charAt(index - 1) != '\\' && s.charAt(index - 1) != '/') {
+                return s.substring(s.lastIndexOf(".") + 1);
+            }
         }
-        else return "";
+        return "";
     }
 }
