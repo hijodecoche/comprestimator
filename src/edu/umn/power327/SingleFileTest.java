@@ -44,13 +44,14 @@ class SingleFileTest {
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
         LzmaEncoder lzmaEncoder = new LzmaEncoder();
-        String hash;
+        String hash, ext;
         byte[] input, output = new byte[1073741824];
         long start, stop;
         int compressSize;
         // do compression test here
         input = Files.readAllBytes(path);
         hash = getHash(input);
+        ext = getExt(path);
         // 2) compressor.setInput(inputByte[]);
         deflater.setInput(input);
         deflater.finish();
@@ -64,7 +65,7 @@ class SingleFileTest {
         // store deflater results
         try {
             dbAdapter.insertResult("deflate_results", hash,
-                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start));
+                    ext, input.length / 1000.0, compressSize / 1000.0, (int)(stop - start));
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -77,7 +78,7 @@ class SingleFileTest {
         // store lz4
         try {
             dbAdapter.insertResult("lz4_results", hash,
-                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
+                    ext, input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -90,11 +91,12 @@ class SingleFileTest {
         // store lzma
         try {
             dbAdapter.insertResult("lzma_results", hash,
-                    getExt(path), input.length / 1000.0, compressSize / 1000.0, (int)(stop - start));
+                    ext, input.length / 1000.0, compressSize / 1000.0, (int)(stop - start));
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        lzmaEncoder.reset();
     }
 
     public static String getHash(byte[] input) throws Exception {
