@@ -36,6 +36,7 @@ public class Main {
         Deflater deflater = new Deflater();
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
+        LZ4Compressor lz4hc = lz4Factory.highCompressor();
         LzmaEncoder lzmaEncoder = new LzmaEncoder();
 
         // initialize results variables
@@ -62,16 +63,58 @@ public class Main {
 
             ///////////////////////////////////////////////////////
             // BEGIN DEFLATE
+            // at level 6
             deflater.setInput(input);
             deflater.finish(); // signals that no new input will enter the buffer
             start = System.currentTimeMillis(); // start timer
             compressSize = deflater.deflate(output);
             stop = System.currentTimeMillis(); // stop timer
-            deflater.reset();
 
             // store deflate results in the database
             try {
-                dbAdapter.insertResult("deflate_results", hash, ext,
+                dbAdapter.insertResult("deflate6_results", hash, ext,
+                        input.length / 1024.0, compressSize / 1024.0,
+                        (int)(stop - start));
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            // level 1
+            deflater.setLevel(1);
+            deflater.reset();
+
+            deflater.setInput(input);
+            deflater.finish(); // signals that no new input will enter the buffer
+            start = System.currentTimeMillis(); // start timer
+            compressSize = deflater.deflate(output);
+            stop = System.currentTimeMillis(); // stop timer
+
+            // store deflate1 results in the database
+            try {
+                dbAdapter.insertResult("deflate1_results", hash, ext,
+                        input.length / 1024.0, compressSize / 1024.0,
+                        (int)(stop - start));
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            // level 9
+            deflater.setLevel(9);
+            deflater.reset();
+
+            deflater.setInput(input);
+            deflater.finish(); // signals that no new input will enter the buffer
+            start = System.currentTimeMillis(); // start timer
+            compressSize = deflater.deflate(output);
+            stop = System.currentTimeMillis(); // stop timer
+            deflater.setLevel(6);
+            deflater.reset();
+
+            // store deflate9 results in the database
+            try {
+                dbAdapter.insertResult("deflate9_results", hash, ext,
                         input.length / 1024.0, compressSize / 1024.0,
                         (int)(stop - start));
 
@@ -83,12 +126,27 @@ public class Main {
 
             ///////////////////////////////////////////////////////
             // BEGIN LZ4
+            // at standard compression
             start = System.currentTimeMillis();
             compressSize = lz4Compressor.compress(input, output);
             stop = System.currentTimeMillis();
             // store lz4 results
             try {
                 dbAdapter.insertResult("lz4_results", hash, ext,
+                        input.length / 1024.0, compressSize / 1024.0,
+                        (int)(stop - start));
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            // LZ4HC
+            start = System.currentTimeMillis();
+            compressSize = lz4hc.compress(input, output);
+            stop = System.currentTimeMillis();
+            // store lz4 results
+            try {
+                dbAdapter.insertResult("lz4hc_results", hash, ext,
                         input.length / 1024.0, compressSize / 1024.0,
                         (int)(stop - start));
 

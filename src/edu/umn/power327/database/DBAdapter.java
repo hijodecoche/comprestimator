@@ -22,24 +22,7 @@ public class DBAdapter {
      * @throws SQLException
      */
     public void createTables() throws SQLException {
-        String deflateTable = "CREATE TABLE IF NOT EXISTS deflate_results(\n"
-                + "fileID INTEGER PRIMARY KEY ASC,\n"
-                + "hash CHAR(32) NOT NULL,\n"
-                + "file_ext VARCHAR(8) NOT NULL,\n"
-                + "orig_size DOUBLE NOT NULL,\n"
-                + "compress_size DOUBLE NOT NULL,\n"
-                + "compress_time INT NOT NULL\n"
-                + ");";
-        String LZ4Table = "CREATE TABLE IF NOT EXISTS lz4_results(\n"
-                + "fileID INTEGER PRIMARY KEY ASC,\n"
-                + "hash CHAR(32) NOT NULL,\n"
-                + "file_ext VARCHAR(8) NOT NULL,\n"
-                + "orig_size DOUBLE NOT NULL,\n"
-                + "compress_size DOUBLE NOT NULL,\n"
-                + "compress_time INT NOT NULL\n"
-                + ");";
-        String LZMATable = "CREATE TABLE IF NOT EXISTS lzma_results(\n"
-                + "fileID INTEGER PRIMARY KEY ASC,\n"
+        String defaultSchema = "fileID INTEGER PRIMARY KEY ASC,\n"
                 + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size DOUBLE NOT NULL,\n"
@@ -47,9 +30,12 @@ public class DBAdapter {
                 + "compress_time INT NOT NULL\n"
                 + ");";
         Statement stmt = con.createStatement();
-        stmt.execute(deflateTable);
-        stmt.execute(LZ4Table);
-        stmt.execute(LZMATable);
+        stmt.execute("CREATE TABLE IF NOT EXISTS deflate1_results(\n" + defaultSchema);
+        stmt.execute("CREATE TABLE IF NOT EXISTS deflate6_results(\n" + defaultSchema);
+        stmt.execute("CREATE TABLE IF NOT EXISTS deflate9_results(\n" + defaultSchema);
+        stmt.execute("CREATE TABLE IF NOT EXISTS lz4_results(\n" + defaultSchema);
+        stmt.execute("CREATE TABLE IF NOT EXISTS lz4hc_results(\n" + defaultSchema);
+        stmt.execute("CREATE TABLE IF NOT EXISTS lzma_results(\n" + defaultSchema);
     }
 
     /**
