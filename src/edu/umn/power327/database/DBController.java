@@ -1,7 +1,8 @@
 package edu.umn.power327.database;
 
+import edu.umn.power327.CompressionResult;
+
 import java.sql.*;
-import java.util.Objects;
 
 /**
  * Interacts with local SQLite DB.
@@ -9,10 +10,10 @@ import java.util.Objects;
  * Will hold file sha256 hash, unique fileID, compress time in millis,
  * orig and compressed file sizes in bytes.
  */
-public class DBAdapter {
+public class DBController {
     private final Connection con;
 
-    public DBAdapter() throws SQLException {
+    public DBController() throws SQLException {
         con = DriverManager.getConnection("jdbc:sqlite:test.db");
     }
 
@@ -25,8 +26,8 @@ public class DBAdapter {
         String defaultSchema = "fileID INTEGER PRIMARY KEY ASC,\n"
                 + "hash CHAR(32) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
-                + "orig_size DOUBLE NOT NULL,\n"
-                + "compress_size DOUBLE NOT NULL,\n"
+                + "orig_size INT NOT NULL,\n"
+                + "compress_size INT NOT NULL,\n"
                 + "compress_time INT NOT NULL\n"
                 + ");";
         Statement stmt = con.createStatement();
@@ -47,12 +48,23 @@ public class DBAdapter {
      * @param compressTime time it took to compress file, in milliseconds
      * @throws SQLException
      */
-    public void insertResult(String table, String hash, String file_ext, double origSize,
-                             double compressSize, int compressTime) throws SQLException {
+    public void insertResult(String table, String hash, String file_ext, int origSize,
+                             int compressSize, long compressTime) throws SQLException {
         Statement s = con.createStatement();
 
         s.execute("INSERT INTO " + table + " (hash, file_ext, orig_size, "
                 + "compress_size, compress_time) VALUES('" + hash + "', '" + file_ext + "', "
                 + origSize + ", " + compressSize + ", " + compressTime + ");");
+    }
+
+    /**
+     * Convenience method for abstracting the compression result.
+     * @param table table to store the result.
+     * @param result CompressionResult object with necessary values.
+     * @throws SQLException
+     */
+    public void insertResult(String table, CompressionResult result) throws SQLException {
+        insertResult(table, result.getHash(), result.getExt(), result.getOrigSize(),
+                result.getCompressSize(), result.getCompressTime());
     }
 }

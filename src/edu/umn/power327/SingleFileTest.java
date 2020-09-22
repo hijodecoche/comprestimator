@@ -1,11 +1,12 @@
 package edu.umn.power327;
 
 import SevenZip.LzmaEncoder;
-import edu.umn.power327.database.DBAdapter;
+import edu.umn.power327.database.DBController;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 
 import java.awt.*;
+import java.io.IOException;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.sql.SQLException;
@@ -17,8 +18,8 @@ class SingleFileTest {
     public static void main(String[] args) throws Exception {
         Robot robot = new Robot();
         Point mousePoint = MouseInfo.getPointerInfo().getLocation();
-        DBAdapter dbAdapter = new DBAdapter();
-        dbAdapter.createTables();
+        DBController dbController = new DBController();
+        dbController.createTables();
         FileSystem fs = FileSystems.getDefault();
         Path path = null;
         if (args.length != 0) {
@@ -43,60 +44,130 @@ class SingleFileTest {
         Deflater deflater = new Deflater();
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
+        LZ4Compressor lz4hc = lz4Factory.highCompressor();
         LzmaEncoder lzmaEncoder = new LzmaEncoder();
-        String hash, ext;
         byte[] input, output = new byte[1073741824];
         long start, stop;
-        int compressSize;
+        CompressionResult result = new CompressionResult();
         // do compression test here
-        input = Files.readAllBytes(path);
-        hash = getHash(input);
-        ext = getExt(path);
-        // 2) compressor.setInput(inputByte[]);
+        try {
+            input = Files.readAllBytes(path);
+            result.setOrigSize(input.length);
+            result.setHash(getHash(input));
+            result.setExt(getExt(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        } catch (OutOfMemoryError e) {
+            System.out.println(" --- OOM Error:");
+            System.out.println(path.toString());
+            return;
+        }
+
+        ///////////////////////////////////////////////////////
+        // BEGIN DEFLATE
+        // at level 6
         deflater.setInput(input);
-        deflater.finish();
-        // 3) TIMER START
-        start = System.currentTimeMillis();
-        // 4) deflate
-        compressSize = deflater.deflate(output);
-        // 5) TIMER STOP
-        stop = System.currentTimeMillis();
+        deflater.finish(); // signals that no new input will enter the buffer
+        start = System.currentTimeMillis(); // start timer
+        result.setCompressSize(deflater.deflate(output));
+        stop = System.currentTimeMillis(); // stop timer
+        result.setCompressTime((stop - start) / 1000);
 
-        // store deflater results
+        // store deflate results in the database
         try {
-            dbAdapter.insertResult("deflate_results", hash,
-                    ext, input.length / 1000.0, compressSize / 1000.0, (int)(stop - start));
+            dbController.insertResult("deflate6_results", result);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // level 1
+        deflater.setLevel(1);
+        deflater.reset(); // required to force next call to deflate() to use new level
+
+        deflater.setInput(input);
+        deflater.finish(); // signals that no new input will enter the buffer
+        start = System.nanoTime(); // start timer
+        result.setCompressSize(deflater.deflate(output));
+        stop = System.nanoTime(); // stop timer
+        result.setCompressTime((stop - start) / 1000);
+
+        // store deflate1 results in the database
+        try {
+            dbController.insertResult("deflate1_results", result);
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        start = System.currentTimeMillis();
-        compressSize = lz4Compressor.compress(input, output);
-        stop = System.currentTimeMillis();
+        // level 9
+        deflater.setLevel(9);
+        deflater.reset();
 
-        // store lz4
+        deflater.setInput(input);
+        deflater.finish(); // signals that no new input will enter the buffer
+        start = System.currentTimeMillis(); // start timer
+        result.setCompressSize(deflater.deflate(output));
+        stop = System.currentTimeMillis(); // stop timer
+        result.setCompressTime((stop - start) / 1000);
+
+        deflater.setLevel(6);
+        deflater.reset();
+
+        // store deflate9 results in the database
         try {
-            dbAdapter.insertResult("lz4_results", hash,
-                    ext, input.length / 1000.0, compressSize / 1000.0, (int)(stop - start) / 1000);
+            dbController.insertResult("deflate9_results",result);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        robot.mouseMove(mousePoint.x, mousePoint.y); // keep computer awake
+        // END DEFLATE ////////////////////////////////////////
 
+        ///////////////////////////////////////////////////////
+        // BEGIN LZ4
+        // at standard compression
+        start = System.nanoTime();
+        result.setCompressSize(lz4Compressor.compress(input, output));
+        stop = System.nanoTime();
+        result.setCompressTime((stop - start) / 1000);
+        // store lz4 results
+        try {
+            dbController.insertResult("lz4_results", result);
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        start = System.currentTimeMillis();
-        compressSize = lzmaEncoder.encode(input);
-        stop = System.currentTimeMillis();
-
-        // store lzma
+        // LZ4HC
+        start = System.nanoTime();
+        result.setCompressSize(lz4hc.compress(input, output));
+        stop = System.nanoTime();
+        result.setCompressTime((stop - start) / 1000);
+        // store lz4 results
         try {
-            dbAdapter.insertResult("lzma_results", hash,
-                    ext, input.length / 1000.0, compressSize / 1000.0, (int)(stop - start));
+            dbController.insertResult("lz4hc_results", result);
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        // END LZ4
+
+        ///////////////////////////////////////////////////////
+        // BEGIN LZMA
+        start = System.nanoTime();
+        result.setCompressSize(lzmaEncoder.encode(input));
+        stop = System.nanoTime();
+        result.setCompressTime((stop - start) / 1000);
         lzmaEncoder.reset();
+        // store lzma results
+        try {
+            dbController.insertResult("lzma_results", result);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        mousePoint = MouseInfo.getPointerInfo().getLocation();
+        robot.mouseMove(mousePoint.x, mousePoint.y);
+        // END LZMA
     }
 
     public static String getHash(byte[] input) throws Exception {
@@ -115,10 +186,12 @@ class SingleFileTest {
 
     public static String getExt(Path path) {
         String s = path.toString();
-        int index = s.lastIndexOf('.');
-        if(index > 0 && s.charAt(index - 1) != '\\' && s.charAt(index - 1) != '/') {
-            return s.substring(s.lastIndexOf(".") + 1);
+        if(s.matches("\\.[^\\./\\\\]+$")) {
+            int index = s.lastIndexOf('.');
+            if(index > 0 && s.charAt(index - 1) != '\\' && s.charAt(index - 1) != '/') {
+                return s.substring(s.lastIndexOf(".") + 1);
+            }
         }
-        else return "";
+        return "";
     }
 }
