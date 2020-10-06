@@ -24,7 +24,7 @@ public class DBController {
      */
     public void createTables() throws SQLException {
         String defaultSchema = "fileID INTEGER PRIMARY KEY ASC,\n"
-                + "hash CHAR(32) NOT NULL,\n"
+                + "hash CHAR(64) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size INT NOT NULL,\n"
                 + "compress_size INT NOT NULL,\n"

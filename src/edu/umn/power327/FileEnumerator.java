@@ -1,5 +1,6 @@
 package edu.umn.power327;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -20,6 +21,15 @@ public class FileEnumerator {
 
         }
         System.out.println("exiting enumerator");
+        try {
+            FileWriter fileWriter = new FileWriter("enumeration.txt");
+            for(Path p : list) {
+                fileWriter.write(p.toString() + '\n');
+            }
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
