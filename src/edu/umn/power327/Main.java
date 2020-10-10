@@ -168,6 +168,7 @@ public class Main {
             // END LZMA
 
         } // END FOR-LOOP
+        System.out.println("Exited successfully!");
     }
 
     public static String getHash(byte[] input) throws Exception {

@@ -14,7 +14,10 @@ public class FileEnumerator {
         FileSystem fs = FileSystems.getDefault();
         for (Path p : fs.getRootDirectories()) {
             try {
-                Files.walkFileTree(p, visitor);
+                String name = p.toString();
+                if (!name.equals("/proc") && !name.equals("/dev") && !name.equals("/sys")) {
+                    Files.walkFileTree(p, visitor);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
