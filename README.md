@@ -16,7 +16,7 @@ Run this on a terminal using `java -jar comprestimator.jar` because that's the o
 ## How to run it:
   ### Windows:
   1) Open CMD (command prompt) or Powershell.  Navigate to the folder where you placed comprestimator.jar.  
-  2) Run: `java -jar comprestimator.jar'.  You should see a welcome message.
+  2) Run: `java -jar comprestimator.jar`.  You should see a welcome message.
   3) When the program is finished running, you will see a new file called "test.db".   Please save this!! This contains all 
      the results from the experiment!  
   4) I recommend compressing test.db before sending it.  To do this, right click on the file, and select "send to compressed 
