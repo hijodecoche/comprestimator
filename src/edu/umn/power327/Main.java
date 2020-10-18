@@ -68,9 +68,9 @@ public class Main {
             // at level 6
             deflater.setInput(input);
             deflater.finish(); // signals that no new input will enter the buffer
-            start = System.currentTimeMillis(); // start timer
+            start = System.nanoTime(); // start timer
             result.setCompressSize(deflater.deflate(output));
-            stop = System.currentTimeMillis(); // stop timer
+            stop = System.nanoTime(); // stop timer
             result.setCompressTime((stop - start) / 1000);
 
             // store deflate results in the database
@@ -105,9 +105,9 @@ public class Main {
 
             deflater.setInput(input);
             deflater.finish(); // signals that no new input will enter the buffer
-            start = System.currentTimeMillis(); // start timer
+            start = System.nanoTime(); // start timer
             result.setCompressSize(deflater.deflate(output));
-            stop = System.currentTimeMillis(); // stop timer
+            stop = System.nanoTime(); // stop timer
             result.setCompressTime((stop - start) / 1000);
 
             deflater.setLevel(6);
