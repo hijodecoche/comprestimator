@@ -52,12 +52,11 @@ public class Main {
                 result.setOrigSize(input.length);
                 result.setHash(getHash(input));
                 result.setExt(getExt(path));
-            } catch (AccessDeniedException e) {
+            } catch (IOException e) {
+                // catches FileNotFound and AccessDenied
                 continue;
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                continue;
-            } catch (OutOfMemoryError e) {
+            }
+            catch (OutOfMemoryError e) {
                 System.out.println(" --- OOM Error:");
                 System.out.println(path.toString());
                 continue;
