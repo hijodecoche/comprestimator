@@ -44,6 +44,7 @@ public class Main {
         byte[] input, output = new byte[1073741824];
         long start, stop;
 
+        System.out.println("Beginning compression loop...");
         for(Path path : fileList) {
             // turn file into byte[] and get sha256 hash
             try {
@@ -53,9 +54,9 @@ public class Main {
                 result.setExt(getExt(path));
             } catch (AccessDeniedException e) {
                 continue;
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                continue;
             } catch (OutOfMemoryError e) {
                 System.out.println(" --- OOM Error:");
                 System.out.println(path.toString());
