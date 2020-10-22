@@ -44,6 +44,7 @@ public class Main {
         byte[] input, output = new byte[1073741824];
         long start, stop;
 
+        System.out.println("Beginning compression loop...");
         for(Path path : fileList) {
             // turn file into byte[] and get sha256 hash
             try {
@@ -51,10 +52,8 @@ public class Main {
                 result.setOrigSize(input.length);
                 result.setHash(getHash(input));
                 result.setExt(getExt(path));
-            } catch (AccessDeniedException e) {
-                continue;
             } catch (IOException e) {
-                e.printStackTrace();
+                // catches FileNotFound and AccessDenied
                 continue;
             } catch (OutOfMemoryError e) {
                 System.out.println(" --- OOM Error:");
@@ -70,7 +69,7 @@ public class Main {
             start = System.nanoTime(); // start timer
             result.setCompressSize(deflater.deflate(output));
             stop = System.nanoTime(); // stop timer
-            result.setCompressTime((stop - start));
+            result.setCompressTime((stop - start) / 1000);
 
             // store deflate results in the database
             try {
@@ -88,7 +87,7 @@ public class Main {
             start = System.nanoTime(); // start timer
             result.setCompressSize(deflater.deflate(output));
             stop = System.nanoTime(); // stop timer
-            result.setCompressTime((stop - start));
+            result.setCompressTime((stop - start) / 1000);
 
             // store deflate1 results in the database
             try {
@@ -107,7 +106,7 @@ public class Main {
             start = System.nanoTime(); // start timer
             result.setCompressSize(deflater.deflate(output));
             stop = System.nanoTime(); // stop timer
-            result.setCompressTime((stop - start));
+            result.setCompressTime((stop - start) / 1000);
 
             deflater.setLevel(6);
             deflater.reset();
@@ -127,7 +126,7 @@ public class Main {
             start = System.nanoTime();
             result.setCompressSize(lz4Compressor.compress(input, output));
             stop = System.nanoTime();
-            result.setCompressTime((stop - start));
+            result.setCompressTime((stop - start) / 1000);
             // store lz4 results
             try {
                 dbController.insertResult("lz4_results", result);
@@ -139,7 +138,7 @@ public class Main {
             start = System.nanoTime();
             result.setCompressSize(lz4hc.compress(input, output));
             stop = System.nanoTime();
-            result.setCompressTime((stop - start));
+            result.setCompressTime((stop - start) / 1000);
             // store lz4 results
             try {
                 dbController.insertResult("lz4hc_results", result);
@@ -154,7 +153,7 @@ public class Main {
             start = System.nanoTime();
             result.setCompressSize(lzmaEncoder.encode(input));
             stop = System.nanoTime();
-            result.setCompressTime(stop - start);
+            result.setCompressTime((stop - start) / 1000);
             lzmaEncoder.reset();
             // store lzma results
             try {
