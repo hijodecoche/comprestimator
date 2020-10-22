@@ -48,6 +48,17 @@ public class CompressionResult {
             this.compressSize = compressSize;
     }
 
+    /**
+     * Used for debugging or when bypassing database.
+     */
+    public void printToConsole() {
+        System.out.println("Hash: " + this.hash);
+        System.out.println("orig_size: " + this.origSize);
+        System.out.println("compress_size: " + this.compressSize);
+        System.out.println("compress_time: " + this.compressTime);
+        System.out.println("Extension: " + this.ext);
+    }
+
     private String hash;
     private String ext;
     /* Storing compressTime as long allows for the long times that lzma uses to be represented

@@ -16,17 +16,23 @@ import java.util.zip.Deflater;
 class SingleFileTest {
 
     public static void main(String[] args) throws Exception {
-        Robot robot = new Robot();
-        Point mousePoint = MouseInfo.getPointerInfo().getLocation();
-        DBController dbController = new DBController();
-        dbController.createTables();
+        boolean useDB = true;
         FileSystem fs = FileSystems.getDefault();
         Path path = null;
-        if (args.length != 0) {
-            try {
-                path = fs.getPath(args[1]);
-            } catch (InvalidPathException ignored) { } // gulp
+        for(String arg : args) {
+            if (arg.contains("no-db")) { useDB = false; }
+            else {
+                try {
+                    path = fs.getPath(args[1]);
+                } catch (InvalidPathException ignored) { } // gulp
+            }
         }
+        DBController dbController = new DBController();
+        if (useDB) {
+            dbController.createTables();
+        }
+        Robot robot = new Robot();
+        Point mousePoint = MouseInfo.getPointerInfo().getLocation();
 
         if (path == null) {
             Scanner scanner = new Scanner(System.in);
@@ -69,16 +75,22 @@ class SingleFileTest {
         // at level 6
         deflater.setInput(input);
         deflater.finish(); // signals that no new input will enter the buffer
-        start = System.currentTimeMillis(); // start timer
+        start = System.nanoTime(); // start timer
         result.setCompressSize(deflater.deflate(output));
-        stop = System.currentTimeMillis(); // stop timer
+        stop = System.nanoTime(); // stop timer
         result.setCompressTime((stop - start) / 1000);
 
         // store deflate results in the database
-        try {
-            dbController.insertResult("deflate6_results", result);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (useDB) {
+            try {
+                dbController.insertResult("deflate6_results", result);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("\tdeflate6\n");
+            result.printToConsole();
         }
 
         // level 1
@@ -93,12 +105,19 @@ class SingleFileTest {
         result.setCompressTime((stop - start) / 1000);
 
         // store deflate1 results in the database
-        try {
-            dbController.insertResult("deflate1_results", result);
+        if (useDB) {
+            try {
+                dbController.insertResult("deflate1_results", result);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+        else {
+            System.out.println("\tdeflate1\n");
+            result.printToConsole();
+        }
+
 
         // level 9
         deflater.setLevel(9);
@@ -106,20 +125,27 @@ class SingleFileTest {
 
         deflater.setInput(input);
         deflater.finish(); // signals that no new input will enter the buffer
-        start = System.currentTimeMillis(); // start timer
+        start = System.nanoTime(); // start timer
         result.setCompressSize(deflater.deflate(output));
-        stop = System.currentTimeMillis(); // stop timer
+        stop = System.nanoTime(); // stop timer
         result.setCompressTime((stop - start) / 1000);
 
         deflater.setLevel(6);
         deflater.reset();
 
         // store deflate9 results in the database
-        try {
-            dbController.insertResult("deflate9_results",result);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (useDB) {
+            try {
+                dbController.insertResult("deflate9_results",result);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+        else {
+            System.out.println("\tdeflate9\n");
+            result.printToConsole();
+        }
+
         robot.mouseMove(mousePoint.x, mousePoint.y); // keep computer awake
         // END DEFLATE ////////////////////////////////////////
 
@@ -131,10 +157,16 @@ class SingleFileTest {
         stop = System.nanoTime();
         result.setCompressTime((stop - start) / 1000);
         // store lz4 results
-        try {
-            dbController.insertResult("lz4_results", result);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (useDB) {
+            try {
+                dbController.insertResult("lz4_results", result);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("\tlz4\n");
+            result.printToConsole();
         }
 
         // LZ4HC
@@ -143,11 +175,17 @@ class SingleFileTest {
         stop = System.nanoTime();
         result.setCompressTime((stop - start) / 1000);
         // store lz4 results
-        try {
-            dbController.insertResult("lz4hc_results", result);
+        if (useDB) {
+            try {
+                dbController.insertResult("lz4hc_results", result);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("\tlz4hc\n");
+            result.printToConsole();
         }
         // END LZ4
 
@@ -159,11 +197,17 @@ class SingleFileTest {
         result.setCompressTime((stop - start) / 1000);
         lzmaEncoder.reset();
         // store lzma results
-        try {
-            dbController.insertResult("lzma_results", result);
+        if (useDB) {
+            try {
+                dbController.insertResult("lzma_results", result);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("\tlzma\n");
+            result.printToConsole();
         }
         mousePoint = MouseInfo.getPointerInfo().getLocation();
         robot.mouseMove(mousePoint.x, mousePoint.y);

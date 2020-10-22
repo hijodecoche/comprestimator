@@ -67,10 +67,10 @@ public class Main {
             // at level 6
             deflater.setInput(input);
             deflater.finish(); // signals that no new input will enter the buffer
-            start = System.currentTimeMillis(); // start timer
+            start = System.nanoTime(); // start timer
             result.setCompressSize(deflater.deflate(output));
-            stop = System.currentTimeMillis(); // stop timer
-            result.setCompressTime((stop - start) / 1000);
+            stop = System.nanoTime(); // stop timer
+            result.setCompressTime((stop - start));
 
             // store deflate results in the database
             try {
@@ -88,7 +88,7 @@ public class Main {
             start = System.nanoTime(); // start timer
             result.setCompressSize(deflater.deflate(output));
             stop = System.nanoTime(); // stop timer
-            result.setCompressTime((stop - start) / 1000);
+            result.setCompressTime((stop - start));
 
             // store deflate1 results in the database
             try {
@@ -104,10 +104,10 @@ public class Main {
 
             deflater.setInput(input);
             deflater.finish(); // signals that no new input will enter the buffer
-            start = System.currentTimeMillis(); // start timer
+            start = System.nanoTime(); // start timer
             result.setCompressSize(deflater.deflate(output));
-            stop = System.currentTimeMillis(); // stop timer
-            result.setCompressTime((stop - start) / 1000);
+            stop = System.nanoTime(); // stop timer
+            result.setCompressTime((stop - start));
 
             deflater.setLevel(6);
             deflater.reset();
@@ -127,7 +127,7 @@ public class Main {
             start = System.nanoTime();
             result.setCompressSize(lz4Compressor.compress(input, output));
             stop = System.nanoTime();
-            result.setCompressTime((stop - start) / 1000);
+            result.setCompressTime((stop - start));
             // store lz4 results
             try {
                 dbController.insertResult("lz4_results", result);
@@ -139,7 +139,7 @@ public class Main {
             start = System.nanoTime();
             result.setCompressSize(lz4hc.compress(input, output));
             stop = System.nanoTime();
-            result.setCompressTime((stop - start) / 1000);
+            result.setCompressTime((stop - start));
             // store lz4 results
             try {
                 dbController.insertResult("lz4hc_results", result);
@@ -154,7 +154,7 @@ public class Main {
             start = System.nanoTime();
             result.setCompressSize(lzmaEncoder.encode(input));
             stop = System.nanoTime();
-            result.setCompressTime((stop - start) / 1000);
+            result.setCompressTime(stop - start);
             lzmaEncoder.reset();
             // store lzma results
             try {
