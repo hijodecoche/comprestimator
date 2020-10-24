@@ -186,7 +186,7 @@ public class Main {
 
     public static String getExt(Path path) {
         String s = path.toString();
-        if(s.matches("\\.[^\\./\\\\]+$")) {
+        if(s.matches(".*\\.[A-Za-z0-9]+$")) {
             int index = s.lastIndexOf('.');
             if(index > 0 && s.charAt(index - 1) != '\\' && s.charAt(index - 1) != '/') {
                 return s.substring(s.lastIndexOf(".") + 1);
