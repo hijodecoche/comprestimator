@@ -8,6 +8,7 @@ import net.jpountz.lz4.LZ4Factory;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.spi.FileTypeDetector;
 import java.security.MessageDigest;
 import java.sql.SQLException;
 import java.util.Scanner;
@@ -17,6 +18,7 @@ class SingleFileTest {
 
     public static void main(String[] args) throws Exception {
         boolean useDB = true;
+//        FileTypeDetector ftd = new FileTypeDetector();
         FileSystem fs = FileSystems.getDefault();
         Path path = null;
         for(String arg : args) {
@@ -53,7 +55,7 @@ class SingleFileTest {
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
         LZ4Compressor lz4hc = lz4Factory.highCompressor();
         LzmaEncoder lzmaEncoder = new LzmaEncoder();
-        byte[] input, output = new byte[1073741824];
+        byte[] input, output = new byte[1610612736];
         long start, stop;
         CompressionResult result = new CompressionResult();
         // do compression test here
@@ -209,6 +211,7 @@ class SingleFileTest {
         else {
             System.out.println("\tlzma\n");
             result.printToConsole();
+            System.out.println(Files.probeContentType(path));
         }
         mousePoint = MouseInfo.getPointerInfo().getLocation();
         robot.mouseMove(mousePoint.x, mousePoint.y);

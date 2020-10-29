@@ -41,7 +41,7 @@ public class Main {
 
         // initialize results variables
         CompressionResult result = new CompressionResult();
-        byte[] input, output = new byte[1073741824];
+        byte[] input, output = new byte[1610612736]; // 1.5 GB
         long start, stop;
 
         System.out.println("Beginning compression loop...");
