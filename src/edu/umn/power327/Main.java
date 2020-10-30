@@ -2,6 +2,7 @@ package edu.umn.power327;
 import SevenZip.LzmaEncoder;
 import edu.umn.power327.database.DBController;
 import net.jpountz.lz4.LZ4Compressor;
+import net.jpountz.lz4.LZ4Exception;
 import net.jpountz.lz4.LZ4Factory;
 
 import java.awt.*;
@@ -56,7 +57,7 @@ public class Main {
                 // catches FileNotFound and AccessDenied
                 continue;
             } catch (OutOfMemoryError e) {
-                System.out.println(" --- OOM Error:");
+                System.out.println(" --- OOM Error caught:");
                 System.out.println(path.toString());
                 continue;
             }
@@ -123,29 +124,35 @@ public class Main {
             ///////////////////////////////////////////////////////
             // BEGIN LZ4
             // at standard compression
-            start = System.nanoTime();
-            result.setCompressSize(lz4Compressor.compress(input, output));
-            stop = System.nanoTime();
-            result.setCompressTime((stop - start) / 1000);
-            // store lz4 results
             try {
-                dbController.insertResult("lz4_results", result);
-            } catch (SQLException e) {
-                e.printStackTrace();
+                start = System.nanoTime();
+                result.setCompressSize(lz4Compressor.compress(input, output));
+                stop = System.nanoTime();
+                result.setCompressTime((stop - start) / 1000);
+                // store lz4 results
+                try {
+                    dbController.insertResult("lz4_results", result);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                // LZ4HC
+                start = System.nanoTime();
+                result.setCompressSize(lz4hc.compress(input, output));
+                stop = System.nanoTime();
+                result.setCompressTime((stop - start) / 1000);
+                // store lz4 results
+                try {
+                    dbController.insertResult("lz4hc_results", result);
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            } catch (LZ4Exception e) {
+                System.out.println("LZ4Exception caught: ");
+                System.out.println(path.toString());
             }
 
-            // LZ4HC
-            start = System.nanoTime();
-            result.setCompressSize(lz4hc.compress(input, output));
-            stop = System.nanoTime();
-            result.setCompressTime((stop - start) / 1000);
-            // store lz4 results
-            try {
-                dbController.insertResult("lz4hc_results", result);
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
             // END LZ4
 
             ///////////////////////////////////////////////////////
