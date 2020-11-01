@@ -8,7 +8,6 @@ import net.jpountz.lz4.LZ4Factory;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.file.*;
-import java.nio.file.spi.FileTypeDetector;
 import java.security.MessageDigest;
 import java.sql.SQLException;
 import java.util.Scanner;

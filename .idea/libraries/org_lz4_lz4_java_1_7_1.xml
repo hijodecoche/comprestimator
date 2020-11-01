@@ -2,11 +2,9 @@
   <library name="org.lz4:lz4-java:1.7.1" type="repository">
     <properties maven-id="org.lz4:lz4-java:1.7.1" />
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/lz4-java-1.7.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/lz4/lz4-java/1.7.1/lz4-java-1.7.1.jar!/" />
     </CLASSES>
-    <JAVADOC>
-      <root url="jar://$PROJECT_DIR$/lib/lz4-java-1.7.1-javadoc.jar!/" />
-    </JAVADOC>
+    <JAVADOC />
     <SOURCES />
   </library>
 </component>
