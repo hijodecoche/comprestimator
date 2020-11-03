@@ -50,7 +50,7 @@ public class DBController {
                              int compressSize, long compressTime) throws SQLException {
         Statement s = con.createStatement();
 
-        s.execute("INSERT INTO " + table + " (hash, file_ext, orig_size, "
+        s.execute("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
                 + "compress_size, compress_time) VALUES('" + hash + "', '" + file_ext + "', "
                 + origSize + ", " + compressSize + ", " + compressTime + ");");
     }
