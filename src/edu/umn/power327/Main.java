@@ -53,12 +53,16 @@ public class Main {
                 result.setOrigSize(input.length);
                 result.setHash(getHash(input));
                 result.setExt(getExt(path));
+                // check if we've seen this file before
+                if (dbController.contains(result.getHash(), result.getOrigSize()))
+                    continue;
             } catch (IOException e) {
                 // catches FileNotFound and AccessDenied
                 continue;
             } catch (OutOfMemoryError e) {
                 System.out.println(" --- OOM Error caught:");
                 System.out.println(path.toString());
+                System.out.println("Continuing compression loop...");
                 continue;
             }
 

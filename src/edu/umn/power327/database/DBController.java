@@ -19,7 +19,6 @@ public class DBController {
 
     /**
      * Create a table for storing results.
-     * TODO: Needs something to check for proper execution of stmt.
      * @throws SQLException
      */
     public void createTables() throws SQLException {
@@ -65,5 +64,33 @@ public class DBController {
     public void insertResult(String table, CompressionResult result) throws SQLException {
         insertResult(table, result.getHash(), result.getExt(), result.getOrigSize(),
                 result.getCompressSize(), result.getCompressTime());
+    }
+
+    /**
+     * Checks if a file has already been compressed.
+     * @param table name of table to check
+     * @param hash hash value of file
+     * @param origSize original size of file
+     * @return true if database contains results from this file, else false
+     * @throws SQLException
+     */
+    public boolean contains(String table, String hash, long origSize) throws SQLException{
+
+        Statement s = con.createStatement();
+        s.execute("SELECT hash, orig_size FROM " + table + " WHERE hash='" + hash
+                + "' AND orig_size=" + origSize);
+        return s.getResultSet().next();
+    }
+
+    /**
+     * Convenience method.  We'll generally use this in case we start changing table names, in which case
+     * we don't need to go searching for calls to above function.
+     * @param hash hash value of file
+     * @param origSize original size of file
+     * @return true if database contains results from this file, else false
+     * @throws SQLException
+     */
+    public boolean contains(String hash, long origSize) throws SQLException {
+        return contains("deflate1_results", hash, origSize);
     }
 }

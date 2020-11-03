@@ -24,7 +24,7 @@ class SingleFileTest {
             if (arg.contains("no-db")) { useDB = false; }
             else {
                 try {
-                    path = fs.getPath(args[1]);
+                    path = fs.getPath(arg);
                 } catch (InvalidPathException ignored) { } // gulp
             }
         }
@@ -63,6 +63,10 @@ class SingleFileTest {
             result.setOrigSize(input.length);
             result.setHash(getHash(input));
             result.setExt(getExt(path));
+            if (dbController.contains(result.getHash(), result.getOrigSize())) {
+                System.out.println("Found this file!");
+                // in main method, continue;
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -116,7 +120,7 @@ class SingleFileTest {
             }
         }
         else {
-            System.out.println("\tdeflate1\n");
+            System.out.println("\n\tdeflate1");
             result.printToConsole();
         }
 
