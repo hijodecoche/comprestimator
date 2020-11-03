@@ -34,7 +34,7 @@ public class Main {
         Point mousePoint = MouseInfo.getPointerInfo().getLocation();
 
         // initialize compressors
-        Deflater deflater = new Deflater();
+        Deflater deflater1 = new Deflater(1), deflater6 = new Deflater(), deflater9 = new Deflater(9);
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         LZ4Compressor lz4Compressor = lz4Factory.fastCompressor();
         LZ4Compressor lz4hc = lz4Factory.highCompressor();
@@ -64,53 +64,44 @@ public class Main {
 
             ///////////////////////////////////////////////////////
             // BEGIN DEFLATE
-            // at level 6
-            deflater.setInput(input);
-            deflater.finish(); // signals that no new input will enter the buffer
+            // at level 1
+            deflater1.setInput(input);
+            deflater1.finish(); // signals that no new input will enter the buffer
             start = System.nanoTime(); // start timer
-            result.setCompressSize(deflater.deflate(output));
+            result.setCompressSize(deflater1.deflate(output));
             stop = System.nanoTime(); // stop timer
             result.setCompressTime((stop - start) / 1000);
 
             // store deflate results in the database
             try {
-                dbController.insertResult("deflate6_results", result);
+                dbController.insertResult("deflate1_results", result);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
 
-            // level 1
-            deflater.setLevel(1);
-            deflater.reset(); // required to force next call to deflate() to use new level
-
-            deflater.setInput(input);
-            deflater.finish(); // signals that no new input will enter the buffer
+            // level 6
+            deflater6.setInput(input);
+            deflater6.finish(); // signals that no new input will enter the buffer
             start = System.nanoTime(); // start timer
-            result.setCompressSize(deflater.deflate(output));
+            result.setCompressSize(deflater6.deflate(output));
             stop = System.nanoTime(); // stop timer
             result.setCompressTime((stop - start) / 1000);
 
             // store deflate1 results in the database
             try {
-                dbController.insertResult("deflate1_results", result);
+                dbController.insertResult("deflate6_results", result);
 
             } catch (SQLException e) {
                 e.printStackTrace();
             }
 
             // level 9
-            deflater.setLevel(9);
-            deflater.reset();
-
-            deflater.setInput(input);
-            deflater.finish(); // signals that no new input will enter the buffer
+            deflater9.setInput(input);
+            deflater9.finish(); // signals that no new input will enter the buffer
             start = System.nanoTime(); // start timer
-            result.setCompressSize(deflater.deflate(output));
+            result.setCompressSize(deflater9.deflate(output));
             stop = System.nanoTime(); // stop timer
             result.setCompressTime((stop - start) / 1000);
-
-            deflater.setLevel(6);
-            deflater.reset();
 
             // store deflate9 results in the database
             try {
