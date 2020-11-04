@@ -30,8 +30,8 @@ public class Main {
         DBController dbController = new DBController();
         dbController.createTables();
 
-        Robot robot = new Robot(); // hacky way to keep computer awake
-        Point mousePoint = MouseInfo.getPointerInfo().getLocation();
+//        Robot robot = new Robot(); // hacky way to keep computer awake
+//        Point mousePoint = MouseInfo.getPointerInfo().getLocation();
 
         // initialize compressors
         Deflater deflater1 = new Deflater(1), deflater6 = new Deflater(), deflater9 = new Deflater(9);
@@ -113,7 +113,7 @@ public class Main {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            robot.mouseMove(mousePoint.x, mousePoint.y); // keep computer awake
+//            robot.mouseMove(mousePoint.x, mousePoint.y); // keep computer awake
             // END DEFLATE ////////////////////////////////////////
 
             ///////////////////////////////////////////////////////
@@ -164,8 +164,8 @@ public class Main {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            mousePoint = MouseInfo.getPointerInfo().getLocation();
-            robot.mouseMove(mousePoint.x, mousePoint.y);
+//            mousePoint = MouseInfo.getPointerInfo().getLocation();
+//            robot.mouseMove(mousePoint.x, mousePoint.y);
             // END LZMA
 
         } // END FOR-LOOP
