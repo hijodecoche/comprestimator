@@ -21,6 +21,17 @@ public class Main {
         System.out.println("Welcome to comprestimator!");
         System.out.println("---------------- \\(^o^)/ ----------------");
 
+        Robot robot = null; // will be instantiated if not headless env
+        Point mousePoint = null;
+        if (!GraphicsEnvironment.isHeadless()) {
+            robot = new Robot(); // hacky way to keep computer awake
+            mousePoint = MouseInfo.getPointerInfo().getLocation();
+        } else {
+            System.out.println("!!! Java has no graphics access!");
+            System.out.println("Please make sure your computer will not fall asleep when idle!");
+            System.out.println("Check README if you need help.");
+        }
+
         FileEnumerator enumerator = new FileEnumerator();
         System.out.println("Beginning filesystem enumeration...");
         ArrayList<Path> fileList = enumerator.enumerateFiles();
@@ -29,9 +40,6 @@ public class Main {
 
         DBController dbController = new DBController();
         dbController.createTables();
-
-//        Robot robot = new Robot(); // hacky way to keep computer awake
-//        Point mousePoint = MouseInfo.getPointerInfo().getLocation();
 
         // initialize compressors
         Deflater deflater1 = new Deflater(1), deflater6 = new Deflater(), deflater9 = new Deflater(9);
@@ -113,7 +121,9 @@ public class Main {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-//            robot.mouseMove(mousePoint.x, mousePoint.y); // keep computer awake
+            if (robot != null) {
+                robot.mouseMove(mousePoint.x, mousePoint.y); // keep computer awake
+            }
             // END DEFLATE ////////////////////////////////////////
 
             ///////////////////////////////////////////////////////
@@ -164,8 +174,10 @@ public class Main {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-//            mousePoint = MouseInfo.getPointerInfo().getLocation();
-//            robot.mouseMove(mousePoint.x, mousePoint.y);
+            if (robot != null) {
+                mousePoint = MouseInfo.getPointerInfo().getLocation();
+                robot.mouseMove(mousePoint.x, mousePoint.y);
+            }
             // END LZMA
 
         } // END FOR-LOOP
