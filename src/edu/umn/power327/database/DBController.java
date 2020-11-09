@@ -27,7 +27,7 @@ public class DBController {
                 + "orig_size INT NOT NULL,\n"
                 + "compress_size INT NOT NULL,\n"
                 + "compress_time INT NOT NULL\n"
-                + ");";
+                + "PRIMARY KEY(hash, orig_size));";
         Statement stmt = con.createStatement();
         stmt.execute("CREATE TABLE IF NOT EXISTS deflate1_results(\n" + defaultSchema);
         stmt.execute("CREATE TABLE IF NOT EXISTS deflate6_results(\n" + defaultSchema);
