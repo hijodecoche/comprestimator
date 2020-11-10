@@ -89,7 +89,7 @@ class SingleFileTest {
         // store deflate results in the database
         if (useDB) {
             try {
-                dbController.insertResult("deflate6_results", result);
+                dbController.insertResult("deflate6_results", result, path.toString());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -113,7 +113,7 @@ class SingleFileTest {
         // store deflate1 results in the database
         if (useDB) {
             try {
-                dbController.insertResult("deflate1_results", result);
+                dbController.insertResult("deflate1_results", result, path.toString());
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -142,7 +142,7 @@ class SingleFileTest {
         // store deflate9 results in the database
         if (useDB) {
             try {
-                dbController.insertResult("deflate9_results",result);
+                dbController.insertResult("deflate9_results",result, path.toString());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -165,7 +165,7 @@ class SingleFileTest {
         // store lz4 results
         if (useDB) {
             try {
-                dbController.insertResult("lz4_results", result);
+                dbController.insertResult("lz4_results", result, path.toString());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -183,7 +183,7 @@ class SingleFileTest {
         // store lz4 results
         if (useDB) {
             try {
-                dbController.insertResult("lz4hc_results", result);
+                dbController.insertResult("lz4hc_results", result, path.toString());
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -205,7 +205,7 @@ class SingleFileTest {
         // store lzma results
         if (useDB) {
             try {
-                dbController.insertResult("lzma_results", result);
+                dbController.insertResult("lzma_results", result, path.toString());
 
             } catch (SQLException e) {
                 e.printStackTrace();

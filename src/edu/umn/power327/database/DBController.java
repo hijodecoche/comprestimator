@@ -26,7 +26,8 @@ public class DBController {
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size INT NOT NULL,\n"
                 + "compress_size INT NOT NULL,\n"
-                + "compress_time INT NOT NULL\n"
+                + "compress_time INT NOT NULL,\n"
+                + "file_name VARCHAR(64) NOT NULL\n"
                 + "PRIMARY KEY(hash, orig_size));";
         Statement stmt = con.createStatement();
         stmt.execute("CREATE TABLE IF NOT EXISTS deflate1_results(\n" + defaultSchema);
@@ -47,12 +48,12 @@ public class DBController {
      * @throws SQLException
      */
     public void insertResult(String table, String hash, String file_ext, int origSize,
-                             int compressSize, long compressTime) throws SQLException {
+                             int compressSize, long compressTime, String filename) throws SQLException {
         Statement s = con.createStatement();
 
         s.execute("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
                 + "compress_size, compress_time) VALUES('" + hash + "', '" + file_ext + "', "
-                + origSize + ", " + compressSize + ", " + compressTime + ");");
+                + origSize + ", " + compressSize + ", " + compressTime + ", " + filename + ");");
     }
 
     /**
@@ -61,9 +62,9 @@ public class DBController {
      * @param result CompressionResult object with necessary values.
      * @throws SQLException
      */
-    public void insertResult(String table, CompressionResult result) throws SQLException {
+    public void insertResult(String table, CompressionResult result, String filename) throws SQLException {
         insertResult(table, result.getHash(), result.getExt(), result.getOrigSize(),
-                result.getCompressSize(), result.getCompressTime());
+                result.getCompressSize(), result.getCompressTime(), filename);
     }
 
     /**

@@ -6,6 +6,7 @@ import net.jpountz.lz4.LZ4Exception;
 import net.jpountz.lz4.LZ4Factory;
 
 import java.awt.*;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.security.MessageDigest;
@@ -86,7 +87,7 @@ public class Main {
 
             // store deflate results in the database
             try {
-                dbController.insertResult("deflate1_results", result);
+                dbController.insertResult("deflate1_results", result, path.toString());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -101,7 +102,7 @@ public class Main {
 
             // store deflate1 results in the database
             try {
-                dbController.insertResult("deflate6_results", result);
+                dbController.insertResult("deflate6_results", result, path.toString());
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -117,7 +118,7 @@ public class Main {
 
             // store deflate9 results in the database
             try {
-                dbController.insertResult("deflate9_results",result);
+                dbController.insertResult("deflate9_results",result, path.toString());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -136,7 +137,7 @@ public class Main {
                 result.setCompressTime((stop - start) / 1000);
                 // store lz4 results
                 try {
-                    dbController.insertResult("lz4_results", result);
+                    dbController.insertResult("lz4_results", result, path.toString());
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -148,7 +149,7 @@ public class Main {
                 result.setCompressTime((stop - start) / 1000);
                 // store lz4 results
                 try {
-                    dbController.insertResult("lz4hc_results", result);
+                    dbController.insertResult("lz4hc_results", result, path.toString());
 
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -169,7 +170,7 @@ public class Main {
             lzmaEncoder.reset();
             // store lzma results
             try {
-                dbController.insertResult("lzma_results", result);
+                dbController.insertResult("lzma_results", result, path.toString());
 
             } catch (SQLException e) {
                 e.printStackTrace();
