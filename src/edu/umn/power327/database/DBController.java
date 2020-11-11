@@ -27,7 +27,7 @@ public class DBController {
                 + "orig_size INT NOT NULL,\n"
                 + "compress_size INT NOT NULL,\n"
                 + "compress_time INT NOT NULL,\n"
-                + "file_name VARCHAR(64) NOT NULL\n"
+                + "file_name VARCHAR(64) NOT NULL,\n"
                 + "PRIMARY KEY(hash, orig_size));";
         Statement stmt = con.createStatement();
         stmt.execute("CREATE TABLE IF NOT EXISTS deflate1_results(\n" + defaultSchema);
@@ -52,8 +52,8 @@ public class DBController {
         Statement s = con.createStatement();
 
         s.execute("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
-                + "compress_size, compress_time) VALUES('" + hash + "', '" + file_ext + "', "
-                + origSize + ", " + compressSize + ", " + compressTime + ", " + filename + ");");
+                + "compress_size, compress_time, file_name) VALUES('" + hash + "', '" + file_ext + "', "
+                + origSize + ", " + compressSize + ", " + compressTime + ", '" + filename + "');");
     }
 
     /**
