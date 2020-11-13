@@ -54,10 +54,14 @@ public class Main {
         byte[] input, output = new byte[1610612736]; // 1.5 GB
         long start, stop;
 
+        // File writer
+        FileWriter fw = new FileWriter("input_log.txt");
+
         System.out.println("Beginning compression loop...");
         for(Path path : fileList) {
             // turn file into byte[] and get sha256 hash
             try {
+                fw.write(path.toString() + "\n");
                 input = Files.readAllBytes(path);
                 result.setOrigSize(input.length);
                 result.setHash(getHash(input));
