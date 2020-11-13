@@ -52,7 +52,7 @@ public class DBController {
         Statement s = con.createStatement();
 
         s.execute("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
-                + "compress_size, compress_time, file_name) VALUES('" + hash + "', '" + file_ext + "', "
+                + "compress_size, compress_time) VALUES('" + hash + "', '" + file_ext + "', "
                 + origSize + ", " + compressSize + ", " + compressTime + ", '" + filename + "');");
     }
 
