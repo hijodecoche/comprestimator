@@ -1,6 +1,5 @@
 package edu.umn.power327;
 
-//import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -13,12 +12,13 @@ public class FileEnumerator {
         FileEnumVisitor visitor = new FileEnumVisitor(list);
         FileSystem fs = FileSystems.getDefault();
         for (Path p : fs.getRootDirectories()) {
-            try {
-                Files.walkFileTree(p, visitor);
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (!p.startsWith("/proc") && !p.startsWith("/dev") && !p.startsWith("/sys") && !p.startsWith("/snap")) {
+                try {
+                    Files.walkFileTree(p, visitor);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-
         }
         System.out.println("exiting enumerator");
 //        try {
@@ -45,9 +45,8 @@ public class FileEnumerator {
         }
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            if (!file.startsWith("/proc") && !file.startsWith("/dev") && !file.startsWith("/sys")) {
+//            if (!file.startsWith("/proc") && !file.startsWith("/dev") && !file.startsWith("/sys") && !file.startsWith("/snap"))
                 this.list.add(file);
-            }
             return FileVisitResult.CONTINUE;
         }
         @Override
