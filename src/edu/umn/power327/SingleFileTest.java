@@ -17,7 +17,6 @@ class SingleFileTest {
 
     public static void main(String[] args) throws Exception {
         boolean useDB = true;
-//        FileTypeDetector ftd = new FileTypeDetector();
         FileSystem fs = FileSystems.getDefault();
         Path path = null;
         for(String arg : args) {

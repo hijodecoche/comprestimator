@@ -6,6 +6,7 @@ import net.jpountz.lz4.LZ4Exception;
 import net.jpountz.lz4.LZ4Factory;
 
 import java.awt.*;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.security.MessageDigest;
@@ -32,6 +33,7 @@ public class Main {
             System.out.println("Check README if you need help.");
         }
 
+        // Enumerate files
         FileEnumerator enumerator = new FileEnumerator();
         System.out.println("Beginning filesystem enumeration...");
         ArrayList<Path> fileList = enumerator.enumerateFiles();
@@ -53,10 +55,26 @@ public class Main {
         byte[] input, output = new byte[1610612736]; // 1.5 GB
         long start, stop;
 
+        // Declare FileWriter (will only be used with --list-files argument)
+        FileWriter fw = null;
+
+        // PARSE ARGUMENTS
+        for(String arg : args) {
+            if (arg.contains("list-files")) {
+                fw = new FileWriter("input_log.txt");
+                System.out.println("Comprestimator will print names of compressed files"
+                + "to input_log.txt");
+            }
+        }
+
         System.out.println("Beginning compression loop...");
         for(Path path : fileList) {
             // turn file into byte[] and get sha256 hash
             try {
+                if (fw != null) {
+                    fw.write(path.toString() + "\n");
+                    fw.flush();
+                }
                 input = Files.readAllBytes(path);
                 result.setOrigSize(input.length);
                 result.setHash(getHash(input));
@@ -180,7 +198,7 @@ public class Main {
             }
             // END LZMA
 
-        } // END FOR-LOOP
+        } // END COMPRESSION LOOP
         System.out.println("Exited successfully!");
     }
 

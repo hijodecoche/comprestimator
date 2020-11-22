@@ -37,8 +37,9 @@ public class FileEnumerator {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             if (!file.startsWith("/proc") && !file.startsWith("/dev") && !file.startsWith("/sys") && !file.startsWith("/snap"))
-                if (file.toFile().isFile())
+                if (file.toFile().isFile()) {
                     this.list.add(file);
+                }
             return FileVisitResult.CONTINUE;
         }
         @Override
