@@ -54,6 +54,7 @@ public class Main {
         CompressionResult result = new CompressionResult();
         byte[] input, output = new byte[1610612736]; // 1.5 GB
         long start, stop;
+        int byteCount = 0; // counter for bytes processed by deflaters
 
         // Declare FileWriter (will only be used with --list-files argument)
         FileWriter fw = null;
@@ -97,9 +98,15 @@ public class Main {
             // at level 1
             deflater1.setInput(input);
             deflater1.finish(); // signals that no new input will enter the buffer
+            byteCount = 0;
+
             start = System.nanoTime(); // start timer
-            result.setCompressSize(deflater1.deflate(output));
+            while (!deflater1.finished()) {
+                byteCount += deflater1.deflate(output);
+            }
             stop = System.nanoTime(); // stop timer
+
+            result.setCompressSize(byteCount);
             result.setCompressTime((stop - start) / 1000);
 
             // store deflate results in the database
@@ -112,9 +119,15 @@ public class Main {
             // level 6
             deflater6.setInput(input);
             deflater6.finish(); // signals that no new input will enter the buffer
+            byteCount = 0;
+
             start = System.nanoTime(); // start timer
-            result.setCompressSize(deflater6.deflate(output));
+            while (!deflater6.finished()) {
+                byteCount += deflater6.deflate(output);
+            }
             stop = System.nanoTime(); // stop timer
+
+            result.setCompressSize(byteCount);
             result.setCompressTime((stop - start) / 1000);
 
             // store deflate1 results in the database
@@ -128,9 +141,15 @@ public class Main {
             // level 9
             deflater9.setInput(input);
             deflater9.finish(); // signals that no new input will enter the buffer
+            byteCount = 0;
+
             start = System.nanoTime(); // start timer
-            result.setCompressSize(deflater9.deflate(output));
+            while (!deflater9.finished()) {
+                byteCount += deflater9.deflate(output);
+            }
             stop = System.nanoTime(); // stop timer
+
+            result.setCompressSize(byteCount);
             result.setCompressTime((stop - start) / 1000);
 
             // store deflate9 results in the database

@@ -56,6 +56,7 @@ class SingleFileTest {
         byte[] input, output = new byte[1610612736];
         long start, stop;
         CompressionResult result = new CompressionResult();
+        int byteCount = 0;
         // do compression test here
         try {
             input = Files.readAllBytes(path);
@@ -80,9 +81,15 @@ class SingleFileTest {
         // at level 1
         deflater1.setInput(input);
         deflater1.finish(); // signals that no new input will enter the buffer
+        byteCount = 0;
+
         start = System.nanoTime(); // start timer
-        result.setCompressSize(deflater1.deflate(output));
+        while (!deflater1.finished()) {
+            byteCount += deflater1.deflate(output);
+        }
         stop = System.nanoTime(); // stop timer
+
+        result.setCompressSize(byteCount);
         result.setCompressTime((stop - start) / 1000);
 
         // store deflate results in the database
@@ -102,9 +109,15 @@ class SingleFileTest {
 
         deflater6.setInput(input);
         deflater6.finish(); // signals that no new input will enter the buffer
+        byteCount = 0;
+
         start = System.nanoTime(); // start timer
-        result.setCompressSize(deflater6.deflate(output));
+        while (!deflater6.finished()) {
+            byteCount += deflater6.deflate(output);
+        }
         stop = System.nanoTime(); // stop timer
+
+        result.setCompressSize(byteCount);
         result.setCompressTime((stop - start) / 1000);
 
         // store deflate1 results in the database
@@ -126,9 +139,15 @@ class SingleFileTest {
 
         deflater9.setInput(input);
         deflater9.finish(); // signals that no new input will enter the buffer
+        byteCount = 0;
+
         start = System.nanoTime(); // start timer
-        result.setCompressSize(deflater9.deflate(output));
+        while (!deflater9.finished()) {
+            byteCount += deflater9.deflate(output);
+        }
         stop = System.nanoTime(); // stop timer
+
+        result.setCompressSize(byteCount);
         result.setCompressTime((stop - start) / 1000);
 
         // store deflate9 results in the database
