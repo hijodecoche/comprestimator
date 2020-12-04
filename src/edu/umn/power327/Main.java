@@ -105,6 +105,7 @@ public class Main {
                 byteCount += deflater1.deflate(output);
             }
             stop = System.nanoTime(); // stop timer
+            deflater1.reset();
 
             result.setCompressSize(byteCount);
             result.setCompressTime((stop - start) / 1000);
@@ -126,6 +127,7 @@ public class Main {
                 byteCount += deflater6.deflate(output);
             }
             stop = System.nanoTime(); // stop timer
+            deflater6.reset();
 
             result.setCompressSize(byteCount);
             result.setCompressTime((stop - start) / 1000);
@@ -148,6 +150,7 @@ public class Main {
                 byteCount += deflater9.deflate(output);
             }
             stop = System.nanoTime(); // stop timer
+            deflater9.reset();
 
             result.setCompressSize(byteCount);
             result.setCompressTime((stop - start) / 1000);
