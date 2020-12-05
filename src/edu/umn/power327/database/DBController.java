@@ -91,6 +91,6 @@ public class DBController {
      * @throws SQLException
      */
     public boolean contains(String hash, long origSize) throws SQLException {
-        return contains("deflate1_results", hash, origSize);
+        return contains("lzma_results", hash, origSize);
     }
 }
