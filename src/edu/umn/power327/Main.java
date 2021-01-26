@@ -4,6 +4,7 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Scanner;
 
 public class Main {
 
@@ -15,6 +16,11 @@ public class Main {
         // controls which algorithms to use (expect all)
         boolean useDeflate1 = true, useDeflate6 = true, useDeflate9 = true, useLZ4 = true, useLZ4HC = true,
                 useLZMA = true, list_files = false;
+
+        // SINGLE FILE TEST VARS
+        boolean singleFileTest = false; // flag for test
+        String singleFile; // user input of path name
+        Path path; // path to single file
 
 
         // PARSE ARGUMENTS
@@ -42,6 +48,10 @@ public class Main {
             } else if (arg.contains("no-lzma ")) {
                 useLZMA = false;
                 System.out.println("Not using LZMA");
+            } else if (arg.contains("single-file")) {
+                singleFileTest = true;
+            } else if (arg.contains("help ")) {
+                usage();
             }
         }
 
@@ -51,17 +61,48 @@ public class Main {
         // Enumerate files
         FileEnumerator enumerator = new FileEnumerator();
 
-        System.out.println("Beginning filesystem enumeration...");
+        ArrayList<Path> fileList;
 
-        ArrayList<Path> fileList = enumerator.enumerateFiles();
-        Collections.shuffle(fileList); // not really necessary unless we expect partial results from a participant
+        if (!singleFileTest) {
+            System.out.println("Beginning filesystem enumeration...");
+            fileList = enumerator.enumerateFiles();
+            Collections.shuffle(fileList); // not really necessary unless we expect partial results from a participant
+            System.out.println("...enumeration complete.");
+        } else {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter the path to some file: ");
+            singleFile = scanner.nextLine();
+            try {
+                FileSystem fs = FileSystems.getDefault();
+                path = fs.getPath(singleFile);
+                fileList = new ArrayList<>(1);
+                fileList.add(0, path);
+            } catch (InvalidPathException e) {
+                System.out.println("Bad path. Exiting.");
+                return;
+            } // gulp
+        }
+
         cm.setFileList(fileList); // give compression manager the list
-
-        System.out.println("...enumeration complete.");
-        System.out.println("Beginning compression loop...");
 
         cm.beginLoop(); // this is where the magic happens
 
+        if (singleFileTest) {
+            cm.getResult().printToConsole();
+        }
+
         System.out.println("Exited successfully!");
+    }
+
+    public static void usage() {
+        System.out.println("\tComprestimator usage:\n ------------------------------------");
+        System.out.println("Comprestimator uses following compressors by default: deflate (levels 1, 6, 9), lz4, lz4hc, lzma");
+        System.out.println("-list-files\t\twill store all file names in input_log.txt");
+        System.out.println("-no-deflate1\t\tskips deflate level 1");
+        System.out.println("-no-deflate6\t\tskips deflate level 6");
+        System.out.println("-no-deflate9\t\tskips deflate level 9");
+        System.out.println("-no-lz4\t\tskips lz4");
+        System.out.println("-no-lz4hc\t\tskips lz4hc");
+        System.out.println("-no-lzma\t\tskips lzma");
     }
 }

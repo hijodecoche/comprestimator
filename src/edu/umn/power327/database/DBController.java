@@ -6,7 +6,6 @@ import java.sql.*;
 
 /**
  * Interacts with local SQLite DB.
- * TODO: Is 8 chars enough for file extension?
  * Will hold file sha256 hash, unique fileID, compress time in millis,
  * orig and compressed file sizes in bytes.
  */
@@ -18,7 +17,7 @@ public class DBController {
     }
 
     /**
-     * Create a table for storing results.
+     * Creates tables for storing results.
      * @throws SQLException
      */
     public void createTables() throws SQLException {
@@ -74,7 +73,7 @@ public class DBController {
      * @return true if database contains results from this file, else false
      * @throws SQLException
      */
-    public boolean contains(String table, String hash, long origSize) throws SQLException{
+    public boolean contains(String table, String hash, long origSize) throws SQLException {
 
         Statement s = con.createStatement();
         s.execute("SELECT hash, orig_size FROM " + table + " WHERE hash='" + hash
@@ -92,5 +91,35 @@ public class DBController {
      */
     public boolean contains(String hash, long origSize) throws SQLException {
         return contains("lzma_results", hash, origSize);
+    }
+
+    /**
+     * Deletes an entry from a single table.  Currently used for running test on single file, if file to test has
+     * already been stored. Uses hash, origSize to identify the unique file using primary key.
+     * @param table table containing entry to delete
+     * @param hash hash of file
+     * @param origSize original size of file
+     * @throws SQLException
+     */
+    public void deleteResult(String table, String hash, long origSize) throws SQLException {
+        Statement s = con.createStatement();
+        s.execute("DELETE FROM " + table + " WHERE hash='" + hash
+                + "' AND orig_size=" + origSize);
+    }
+
+    /**
+     * Deletes an entry from all tables using primary key (hash, origSize).
+     * @param hash hash value of file
+     * @param origSize original size of file
+     */
+    public void deleteFromAll(String hash, long origSize) {
+        String[] tables = {"deflate1_results", "deflate6_results", "deflate9_results",
+                "lz4_results", "lz4hc_results", "lzma_results"};
+
+        for(String table : tables) {
+            try {
+                deleteResult(table, hash, origSize);
+            } catch (SQLException ignored){ }
+        }
     }
 }

@@ -17,20 +17,20 @@ import java.util.zip.*;
 
 public class CompressorManager {
 
+    // compressors
     private Deflater deflater1, deflater6, deflater9;
-    LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
-    LZ4Compressor lz4Compressor;
-    LZ4Compressor lz4hc;
-    LzmaEncoder lzmaEncoder;
-    public CompressionResult result = new CompressionResult();
+    private LZ4Compressor lz4Compressor;
+    private LZ4Compressor lz4hc;
+    private LzmaEncoder lzmaEncoder;
+
+    private final CompressionResult result = new CompressionResult();
     private ArrayList<Path> fileList;
     private byte[] input;
     private final byte[] output = new byte[1610612736]; // 1.5 GB
-    long start, stop;
+    private long start, stop;
     private boolean list_files = false;
-    DBController dbController;
-    Robot robot; // will be instantiated if not headless env
-    Point mousePoint;
+    private DBController dbController;
+    private Robot robot; // will be instantiated if not headless env
 
     public CompressorManager() throws Exception {
         new CompressorManager(true, true, true, true, true, true, false);
@@ -42,17 +42,17 @@ public class CompressorManager {
         if (useDeflate1) deflater1 = new Deflater(1);
         if (useDeflate6) deflater6 = new Deflater();
         if (useDeflate9) deflater9 = new Deflater(9);
+        LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         if (useLZ4) lz4Compressor = lz4Factory.fastCompressor();
         if (useLZ4HC) lz4hc = lz4Factory.highCompressor();
         if (useLZMA) lzmaEncoder = new LzmaEncoder();
 
         if (!GraphicsEnvironment.isHeadless()) {
             robot = new Robot(); // hacky way to keep computer awake
-            mousePoint = MouseInfo.getPointerInfo().getLocation();
         } else {
             System.out.println("!!! Java has no graphics access!");
             System.out.println("Please make sure your computer will not fall asleep when idle!");
-            System.out.println("Check README if you need help.");
+            System.out.println("Check README if you need help.\n\t------------------------------");
         }
 
         dbController = new DBController();
@@ -61,7 +61,11 @@ public class CompressorManager {
 
     public void beginLoop() throws Exception {
 
+        Point mousePoint; // never instantiated when in headless env
+        // using singleFileTest will be faster than multiple calls to fileList.size()
+        boolean singleFileTest = fileList.size() == 1;
         FileWriter fw = null;
+
         if (list_files) {
             fw = new FileWriter("input_log.txt");
             System.out.println("Comprestimator will print names of compressed files"
@@ -70,70 +74,76 @@ public class CompressorManager {
 
         System.out.println("Beginning compression loop...");
         for(Path path : fileList) {
-            // turn file into byte[] and get sha256 hash
             try {
                 if (fw != null) {
                     fw.write(path.toString() + "\n");
                     fw.flush();
                 }
+                // turn file into byte[] and get metadata
                 input = Files.readAllBytes(path);
                 result.setOrigSize(input.length);
                 result.setHash(getHash(input));
                 result.setExt(getExt(path));
                 // check if we've seen this file before
-                if (dbController.contains(result.getHash(), result.getOrigSize()))
-                    continue;
-            } catch (IOException e) {
-                // catches FileNotFound and AccessDenied
-                continue;
+                if (dbController.contains(result.getHash(), result.getOrigSize())) {
+                    if (singleFileTest) {
+                        dbController.deleteFromAll(result.getHash(), result.getOrigSize());
+                    }
+                    else
+                        continue;
+                }
+
+
+                ///////////////////////////////////////////////////////
+                // BEGIN DEFLATE
+                // at level 1
+                doDeflate1();
+
+                // level 6
+                doDeflate6();
+
+                // level 9
+                doDeflate9();
+
+                // END DEFLATE ////////////////////////////////////////
+
+                if (robot != null) {
+                    mousePoint = MouseInfo.getPointerInfo().getLocation();
+                    robot.mouseMove(mousePoint.x, mousePoint.y);
+                }
+
+                ///////////////////////////////////////////////////////
+                // BEGIN LZ4
+                try {
+
+                    doLZ4();
+                    doLZ4HC();
+
+                } catch (LZ4Exception e) {
+                    System.out.println("LZ4Exception caught: ");
+                    System.out.println(path.toString());
+                }
+                // END LZ4 ////////////////////////////////////////////
+
+                ///////////////////////////////////////////////////////
+                // BEGIN LZMA
+                doLZMA();
+                // END LZMA
+
+                if (robot != null) {
+                    mousePoint = MouseInfo.getPointerInfo().getLocation();
+                    robot.mouseMove(mousePoint.x, mousePoint.y);
+                }
             } catch (OutOfMemoryError e) {
                 System.out.println(" --- OOM Error caught:");
                 System.out.println(path.toString());
                 System.out.println("Continuing compression loop...");
-                continue;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (IOException ignored) {
+                // catches AccessDenied and FileNotFound
+                // continue;
             }
-
-            ///////////////////////////////////////////////////////
-            // BEGIN DEFLATE
-            // at level 1
-            doDeflate1();
-
-            // level 6
-            doDeflate6();
-
-            // level 9
-            doDeflate9();
-
-            if (robot != null) {
-                mousePoint = MouseInfo.getPointerInfo().getLocation();
-                robot.mouseMove(mousePoint.x, mousePoint.y);
-            }
-
-            // END DEFLATE ////////////////////////////////////////
-
-            ///////////////////////////////////////////////////////
-            // BEGIN LZ4
-            try {
-
-                doLZ4();
-                doLZ4HC();
-
-            } catch (LZ4Exception e) {
-                System.out.println("LZ4Exception caught: ");
-                System.out.println(path.toString());
-            }
-
-            // END LZ4
-
-            ///////////////////////////////////////////////////////
-            // BEGIN LZMA
-            doLZMA();
-
-            if (robot != null) {
-                mousePoint = MouseInfo.getPointerInfo().getLocation();
-                robot.mouseMove(mousePoint.x, mousePoint.y);
-            }
-            // END LZMA
 
         } // END COMPRESSION LOOP
     }
@@ -168,7 +178,15 @@ public class CompressorManager {
         this.fileList = fileList;
     }
 
-    private void doDeflate1() {
+    public CompressionResult getResult() {
+        return result;
+    }
+
+    ///////////////////////////////////////////
+    // Functions for individual compressors: //
+    ///////////////////////////////////////////
+
+    private void doDeflate1() throws SQLException {
         deflater1.setInput(input);
         deflater1.finish(); // signals that no new input will enter the buffer
         int byteCount = 0;
@@ -184,14 +202,10 @@ public class CompressorManager {
         result.setCompressTime((stop - start) / 1000);
 
         // store deflate results in the database
-        try {
-            dbController.insertResult("deflate1_results", result);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        dbController.insertResult("deflate1_results", result);
     }
 
-    private void doDeflate6() {
+    private void doDeflate6() throws SQLException {
         deflater6.setInput(input);
         deflater6.finish(); // signals that no new input will enter the buffer
         int byteCount = 0;
@@ -207,15 +221,10 @@ public class CompressorManager {
         result.setCompressTime((stop - start) / 1000);
 
         // store deflate1 results in the database
-        try {
-            dbController.insertResult("deflate6_results", result);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        dbController.insertResult("deflate6_results", result);
     }
 
-    private void doDeflate9() {
+    private void doDeflate9() throws SQLException {
         deflater9.setInput(input);
         deflater9.finish(); // signals that no new input will enter the buffer
         int byteCount = 0;
@@ -231,39 +240,26 @@ public class CompressorManager {
         result.setCompressTime((stop - start) / 1000);
 
         // store deflate9 results in the database
-        try {
-            dbController.insertResult("deflate9_results",result);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        dbController.insertResult("deflate9_results",result);
     }
 
-    private void doLZ4() throws LZ4Exception {
+    private void doLZ4() throws SQLException {
         start = System.nanoTime();
         result.setCompressSize(lz4Compressor.compress(input, output));
         stop = System.nanoTime();
         result.setCompressTime((stop - start) / 1000);
         // store lz4 results
-        try {
-            dbController.insertResult("lz4_results", result);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        dbController.insertResult("lz4_results", result);
     }
 
-    private void doLZ4HC() throws LZ4Exception {
+    private void doLZ4HC() throws SQLException {
         // LZ4HC
         start = System.nanoTime();
         result.setCompressSize(lz4hc.compress(input, output));
         stop = System.nanoTime();
         result.setCompressTime((stop - start) / 1000);
         // store lz4 results
-        try {
-            dbController.insertResult("lz4hc_results", result);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        dbController.insertResult("lz4hc_results", result);
     }
 
     private void doLZMA() throws Exception {
@@ -273,11 +269,6 @@ public class CompressorManager {
         result.setCompressTime((stop - start) / 1000);
         lzmaEncoder.reset();
         // store lzma results
-        try {
-            dbController.insertResult("lzma_results", result);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        dbController.insertResult("lzma_results", result);
     }
 }
