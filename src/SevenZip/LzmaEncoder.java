@@ -8,8 +8,6 @@ import java.io.ByteArrayInputStream;
  * Pared implementation of LZMA specifically for use in comprestimator.
  * To mimic java.util.zip.Deflater, most of instantiation occurs in ctor
  * and reset() method to discard old dictionary, etc.
- * TODO: maybe make outStream a public field, so rather than encode method
- *      returning int, the user calls outStream.size() outside timer?
  */
 public class LzmaEncoder {
 

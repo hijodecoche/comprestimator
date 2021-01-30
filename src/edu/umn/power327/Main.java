@@ -1,5 +1,6 @@
 package edu.umn.power327;
 
+import java.io.File;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,14 +57,15 @@ public class Main {
         }
 
         // CREATE COMPRESSION MANAGER
-        CompressorManager cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4, useLZ4HC, useLZMA, list_files);
+        CompressorManager cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4,
+                useLZ4HC, useLZMA, list_files);
 
-        // Enumerate files
         FileEnumerator enumerator = new FileEnumerator();
 
-        ArrayList<Path> fileList;
+        ArrayList<File> fileList;
 
         if (!singleFileTest) {
+            // ENUMERATE FILES
             System.out.println("Beginning filesystem enumeration...");
             fileList = enumerator.enumerateFiles();
             Collections.shuffle(fileList); // not really necessary unless we expect partial results from a participant
@@ -76,21 +78,26 @@ public class Main {
                 FileSystem fs = FileSystems.getDefault();
                 path = fs.getPath(singleFile);
                 fileList = new ArrayList<>(1);
-                fileList.add(0, path);
+                fileList.add(0, path.toFile());
             } catch (InvalidPathException e) {
                 System.out.println("Bad path. Exiting.");
                 return;
-            } // gulp
+            }
         }
 
         cm.setFileList(fileList); // give compression manager the list
 
-        cm.beginLoop(); // this is where the magic happens
+        cm.beginLoop(); // this is the meat of the operation
 
         if (singleFileTest) {
             cm.getResult().printToConsole();
         }
 
+        // DELETE ENUMERATION FILE, IF EXISTS
+        try {
+            File file = new File("enumeration.txt");
+            file.delete(); // throws FileNotFoundException
+        } catch (Exception ignored) { }
         System.out.println("Exited successfully!");
     }
 
@@ -98,6 +105,7 @@ public class Main {
         System.out.println("\tComprestimator usage:\n ------------------------------------");
         System.out.println("Comprestimator uses following compressors by default: deflate (levels 1, 6, 9), lz4, lz4hc, lzma");
         System.out.println("-list-files\t\twill store all file names in input_log.txt");
+        System.out.println("-single-file\t\ttest only one file. Will prompt for path.");
         System.out.println("-no-deflate1\t\tskips deflate level 1");
         System.out.println("-no-deflate6\t\tskips deflate level 6");
         System.out.println("-no-deflate9\t\tskips deflate level 9");

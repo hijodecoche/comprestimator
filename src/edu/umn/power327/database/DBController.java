@@ -66,12 +66,12 @@ public class DBController {
     }
 
     /**
-     * Checks if a file has already been compressed.
+     * Checks if a file has already been compressed using specified compression algorithm.
      * @param table name of table to check
      * @param hash hash value of file
      * @param origSize original size of file
      * @return true if database contains results from this file, else false
-     * @throws SQLException
+     * @throws SQLException if given table name that does not exist
      */
     public boolean contains(String table, String hash, long origSize) throws SQLException {
 
@@ -86,11 +86,21 @@ public class DBController {
      * we don't need to go searching for calls to above function.
      * @param hash hash value of file
      * @param origSize original size of file
-     * @return true if database contains results from this file, else false
-     * @throws SQLException
+     * @return true if database contains results from this file in all tables, else false
      */
-    public boolean contains(String hash, long origSize) throws SQLException {
-        return contains("lzma_results", hash, origSize);
+    public boolean contains(String hash, long origSize) {
+        String[] tables = {"deflate1_results", "deflate6_results", "deflate9_results",
+                "lz4_results", "lz4hc_results", "lzma_results"};
+        boolean inAllTables = true;
+        for (String table : tables) {
+            try {
+                if (!contains(table, hash, origSize)) {
+                    inAllTables = false;
+                }
+            } catch (SQLException ignored) { } // some tables may not exist. continue.
+        }
+
+        return inAllTables;
     }
 
     /**
