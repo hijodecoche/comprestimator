@@ -95,7 +95,7 @@ public class Main {
 
         // DELETE ENUMERATION FILE, IF EXISTS
         try {
-            File file = new File("enumeration.txt");
+            File file = new File("enumeration.dat");
             file.delete(); // throws FileNotFoundException
         } catch (Exception ignored) { }
         System.out.println("Exited successfully!");

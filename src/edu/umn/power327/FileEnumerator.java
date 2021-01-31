@@ -14,11 +14,15 @@ public class FileEnumerator {
         FileOutputStream fos;
         ObjectOutputStream oos;
         try {
-            FileInputStream fis = new FileInputStream("enumeration.txt");
+            FileInputStream fis = new FileInputStream("enumeration.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
+
+            System.out.println("Loading previous enumeration...");
             list = (ArrayList<File>) ois.readObject();
+            System.out.println("File list successfully loaded!");
+
         } catch (FileNotFoundException | ClassNotFoundException e) {
-            fos = new FileOutputStream("enumeration.txt");
+            fos = new FileOutputStream("enumeration.dat");
             oos = new ObjectOutputStream(fos);
             list = new ArrayList<>();
             visitor =  new FileEnumVisitor(list);

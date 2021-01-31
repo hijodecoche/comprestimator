@@ -90,6 +90,7 @@ public class CompressorManager {
                     fw.write(file.getPath() + "\n");
                     fw.flush();
                 }
+                // weed out pseudo-files
                 if (!file.isFile()) {
                     continue;
                 }
