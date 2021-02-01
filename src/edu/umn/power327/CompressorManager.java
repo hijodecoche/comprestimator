@@ -77,6 +77,14 @@ public class CompressorManager {
         boolean singleFileTest = fileList.size() == 1;
         FileWriter fw = null;
 
+        FileTypeFetcher fetcher = new FileTypeFetcher();
+        try {
+            String s = fetcher.fetchType("comprestimator.jar");
+        } catch (IOException e) {
+            System.out.println("Will not use unix file command.");
+            fetcher = null;
+        }
+
         if (list_files) {
             fw = new FileWriter("input_log.txt");
             System.out.println("Comprestimator will print names of compressed files"
@@ -93,6 +101,10 @@ public class CompressorManager {
                 // weed out pseudo-files
                 if (!file.isFile()) {
                     continue;
+                }
+                // fetch file type, if filesystem has sh
+                if (fetcher != null) {
+                    result.setType(fetcher.fetchType(file.getPath()));
                 }
                 // turn file into byte[] and get metadata
                 input = Files.readAllBytes(file.toPath());

@@ -48,6 +48,14 @@ public class CompressionResult {
             this.compressSize = compressSize;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     /**
      * Used for debugging or when bypassing database.
      */
@@ -61,6 +69,7 @@ public class CompressionResult {
 
     private String hash;
     private String ext;
+    private String type = "";
     /* Storing compressTime as long allows for the long times that lzma uses to be represented
      * without some kind of flag value.  SQLite can handle up to 64-bit integers to be store in INT
      */
