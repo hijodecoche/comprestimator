@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class FileEnumerator {
 
@@ -21,21 +22,19 @@ public class FileEnumerator {
             list = (ArrayList<File>) ois.readObject();
             System.out.println("File list successfully loaded!");
 
-        } catch (FileNotFoundException | ClassNotFoundException e) {
-            fos = new FileOutputStream("enumeration.dat");
-            oos = new ObjectOutputStream(fos);
+        } catch (Exception e) {
             list = new ArrayList<>();
-            visitor =  new FileEnumVisitor(list);
+            visitor =  new FileEnumVisitor(list, getProhibitedList());
 
             for (Path p : fs.getRootDirectories()) {
-                if (!p.startsWith("/proc") && !p.startsWith("/dev") && !p.startsWith("/sys") && !p.startsWith("/snap")) {
-                    try {
-                        Files.walkFileTree(p, visitor);
-                    } catch (IOException err) {
-                        err.printStackTrace();
-                    }
+                try {
+                    Files.walkFileTree(p, visitor);
+                } catch (IOException err) {
+                    err.printStackTrace();
                 }
             }
+            fos = new FileOutputStream("enumeration.dat");
+            oos = new ObjectOutputStream(fos);
             oos.writeObject(list); // in case we stop and restart, no need for second enumeration
         }
 
@@ -43,25 +42,62 @@ public class FileEnumerator {
         return list;
     }
 
+    private HashMap<String, String> getProhibitedList() {
+        HashMap<String, String> prohibited = new HashMap<>();
+        try {
+            FileReader fr = new FileReader("skip_list.txt");
+            BufferedReader br = new BufferedReader(fr);
+            String line;
+            while ((line = br.readLine()) != null) {
+                prohibited.put(line, line);
+            }
+        } catch (IOException e) {
+            prohibited.put("/dev", "/dev");
+            prohibited.put("/sys", "/sys");
+            prohibited.put("/proc", "/proc");
+            prohibited.put("/snap", "/snap");
+        }
+
+        return prohibited;
+    }
+
     /**
      * These are the functions that will be called on each file as we walk the file tree.
      * Files.walkFileTree() requires we use Path, so we must convert each path to a File.
      */
-    public static class FileEnumVisitor extends SimpleFileVisitor<Path> {
+    public static class FileEnumVisitor implements FileVisitor<Path> {
 
         public ArrayList<File> list;
+        public HashMap<String, String> prohibited;
 
-        public FileEnumVisitor(ArrayList<File> list) {
+        public FileEnumVisitor(ArrayList<File> list, HashMap<String, String> prohibited) {
             this.list = list;
+            this.prohibited = prohibited;
         }
+
         @Override
         public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
             this.list.add(path.toFile());
             return FileVisitResult.CONTINUE;
         }
+
         @Override
         public FileVisitResult visitFileFailed(Path path, IOException e) {
             return FileVisitResult.SKIP_SUBTREE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+            if (prohibited.containsKey(dir.toString())) {
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+            else
+                return FileVisitResult.CONTINUE;
         }
     }
 }
