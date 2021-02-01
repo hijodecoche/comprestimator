@@ -172,7 +172,9 @@ public class CompressorManager {
                 System.out.println(file.getPath());
                 System.out.println("Continuing compression loop...");
             } catch (SQLException e) {
-                e.printStackTrace();
+                // this almost certainly means the file command isn't working
+                // set it to null to skip future file attempts
+                fetcher = null;
             } catch (IOException ignored) {
                 // catches AccessDenied and FileNotFound
                 // continue;

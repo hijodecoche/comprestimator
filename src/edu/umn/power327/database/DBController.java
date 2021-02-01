@@ -49,10 +49,6 @@ public class DBController {
     public void insertResult(String table, String hash, String file_ext, int origSize,
                              int compressSize, long compressTime, String type) throws SQLException {
         Statement s = con.createStatement();
-        System.out.println("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
-                + "compress_size, compress_time, file_type) VALUES('" + hash + "', '" + file_ext + "', "
-                + origSize + ", " + compressSize + ", " + compressTime + ", '" + type + "');");
-
         s.execute("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
                 + "compress_size, compress_time, file_type) VALUES('" + hash + "', '" + file_ext + "', "
                 + origSize + ", " + compressSize + ", " + compressTime + ", '" + type + "');");
