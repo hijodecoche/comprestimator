@@ -84,6 +84,11 @@ public class Main {
                 return;
             }
         }
+        // not sure if setting enumerator to null will actually destroy the object...
+        // ...because fileList might be tied to the enumerator object
+        // if that's the case, we need to make fileList an object passed into enumerator during construction
+        // or deep copy the list later (which would be inefficient)
+        enumerator = null; // we no longer need enumerator, so free up the memory
 
         cm.setFileList(fileList); // give compression manager the list
 
