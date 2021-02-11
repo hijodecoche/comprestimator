@@ -4,9 +4,9 @@
   This program is part of an experiment to learn how real-world files compress.  When run on a machine, it feeds every file on the system through five different file compressors to see how well the file compresses and how long it takes the file to compress.
   
 ## Privacy Protection
-Though we do not track or store file names or file locations on your system, we do collect some information that could be used to guess what type of information <i>may</i> exist on your system.  For this reason, we will not distribute this data to anyone outside UMD's LARS lab. 
+Though we do not track or store file names or file locations on your system, we do collect some information that could be used to guess what type of information <i>may</i> exist on your system.  For this reason, we will not distribute this data to anyone not part of the Comprestimator study. 
 
-Instead of storing file names, comprestimator will store a file's hash value, which is like a unique file fingerprint.  This fingerprint cannot tell us the name, location, or content of the original file.  (If you would like to know more about how hash functions work, visit the Wikipedia article on cryptographic hash functions: https://en.wikipedia.org/wiki/Cryptographic_hash_function).  Besides storing the file's hash, this program will record the file's original size, its compressed size, and the amount of time needed to compress the file.  All of this information will be stored locally on an SQLite database.
+Instead of storing file names, comprestimator will store a file's hash value, which is like a unique file fingerprint.  This fingerprint cannot tell us the name, location, or content of the original file.  (If you would like to know more about how hash functions work, visit the Wikipedia article on cryptographic hash functions: https://en.wikipedia.org/wiki/Cryptographic_hash_function).  Besides storing the file's hash, this program will record the file's original size, its compressed size, and the amount of time needed to compress the file.  All of this information will be stored locally on an SQLite database file.
   
 ## What you need:
 - The latest Java Runtime Environment (JRE).  This should run on anything that supports JRE 8 or higher.
@@ -19,10 +19,12 @@ Instead of storing file names, comprestimator will store a file's hash value, wh
 **WARNING: Comprestimator will take many hours to finish.  If you need to use your computer before the program has finished running, hit `Ctrl + C`.** You can restart the program later, and it will pick up where it left off.
 
   ### Windows:
+  
+  (note: if you have Windows Subsystem for Linux (WSL), I recommend using WSL so that we can gather `file` command metadata.  If you do not know what WSL is, disregard this request.)
     
   1. Open your Downloads folder (or wherever you placed the comprestimator zip file).  Right-click on `comprestimator.zip` and select `Extract all...`.  
   1. If there are any folders that you do not want comprestimator to touch, enter the full pathname of each folder on a separate line in the file `skip_list.txt`.
-     If you cannot find `skip_list.txt`, double click `run.bat` and then hit `Ctrl + C` after a couple seconds to quit the program. This will generate `skip_list.txt` for you. 
+     If you cannot find `skip_list.txt`, double click `run.bat` and then hit `Ctrl + C` after a few seconds to quit the program. This will generate `skip_list.txt` for you. 
   2. Double-click `run.bat`. A shell window will open.  The first message you should see is "Beginning file enumeration...".  
      This takes several minutes depending on the amount of data on your computer.
   3. Next, you should see "Beginning compression loop...".  <b>This step will take many hours.  If you need to halt the 
