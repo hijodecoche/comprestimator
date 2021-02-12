@@ -2,10 +2,7 @@ package edu.umn.power327;
 
 import java.io.File;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
@@ -16,7 +13,7 @@ public class Main {
 
         // controls which algorithms to use (expect all)
         boolean useDeflate1 = true, useDeflate6 = true, useDeflate9 = true, useLZ4 = true, useLZ4HC = true,
-                useLZMA = true, list_files = false;
+                useLZMA = true, listFiles = false, useTestVector = true;
 
         // SINGLE FILE TEST VARS
         boolean singleFileTest = false; // flag for test
@@ -28,7 +25,7 @@ public class Main {
         for(String arg : args) {
             arg = arg.toLowerCase(Locale.ROOT);
             if (arg.contains("list-files ")) {
-                list_files = true;
+                listFiles = true;
                 System.out.println("Comprestimator will print names of compressed files"
                 + "to input_log.txt");
             } else if (arg.contains("no-deflate1 ")) {
@@ -51,14 +48,17 @@ public class Main {
                 System.out.println("Not using LZMA");
             } else if (arg.contains("single-file")) {
                 singleFileTest = true;
+                useTestVector = false;
             } else if (arg.contains("help ")) {
                 usage();
+            } else if (arg.contains("skip-test-vector")) {
+                useTestVector = false;
             }
         }
 
         // CREATE COMPRESSION MANAGER
         CompressorManager cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4,
-                useLZ4HC, useLZMA, list_files);
+                useLZ4HC, useLZMA, listFiles, useTestVector);
 
         FileEnumerator enumerator = new FileEnumerator();
 

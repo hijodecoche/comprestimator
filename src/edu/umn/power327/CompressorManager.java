@@ -14,6 +14,7 @@ import java.nio.file.*;
 import java.security.MessageDigest;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.zip.*;
 
 /**
@@ -44,11 +45,12 @@ public class CompressorManager {
      * @throws Exception from LZMAEncoder, Robot, DBController, etc.
      */
     public CompressorManager() throws Exception {
-        new CompressorManager(true, true, true, true, true, true, false);
+        new CompressorManager(true, true, true, true, true, true,
+                false, true);
     }
 
     public CompressorManager(boolean useDeflate1, boolean useDeflate6, boolean useDeflate9, boolean useLZ4,
-                             boolean useLZ4HC, boolean useLZMA, boolean list_files) throws Exception {
+                             boolean useLZ4HC, boolean useLZMA, boolean list_files, boolean useTestVector) throws Exception {
         this.list_files = list_files;
         if (useDeflate1) deflater1 = new Deflater(1);
         if (useDeflate6) deflater6 = new Deflater();
@@ -68,6 +70,10 @@ public class CompressorManager {
 
         dbController = new DBController();
         dbController.createTables();
+
+        if (useTestVector) {
+            compressTestVector();
+        }
     }
 
     public void beginLoop() throws Exception {
@@ -205,6 +211,42 @@ public class CompressorManager {
             }
         }
         return "";
+    }
+
+    private void compressTestVector() throws Exception {
+        // COMPRESS TEST VECTOR
+        if (!dbController.contains("0", 1)) {
+            System.out.println("Compressing test vector...");
+            Random random = new Random(65536); // hardcoded seed makes RNG generate identical test vectors
+            input = new byte[268435456]; // 256 mb
+            random.nextBytes(input);
+            result.setHash("0000000000000000000000000000000000000000000000000000000000000000");
+            result.setExt("");
+            result.setOrigSize(1);
+            // BEGIN DEFLATE
+            // at level 1
+            doDeflate(deflater1);
+            dbController.insertResult("deflate1_results", result);
+
+            // level 6
+            doDeflate(deflater6);
+            dbController.insertResult("deflate6_results", result);
+
+            // level 9
+            doDeflate(deflater9);
+            dbController.insertResult("deflate9_results", result);
+
+            doLZ4();
+            dbController.insertResult("lz4_results", result);
+
+            doLZ4HC();
+            dbController.insertResult("lz4hc_results", result);
+
+            doLZMA();
+            dbController.insertResult("lzma_results", result);
+
+            System.out.println("Done compressing test vector.");
+        }
     }
 
     public void setFileList(ArrayList<File> fileList) {
