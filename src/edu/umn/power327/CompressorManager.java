@@ -46,11 +46,11 @@ public class CompressorManager {
      */
     public CompressorManager() throws Exception {
         new CompressorManager(true, true, true, true, true, true,
-                false, true);
+                false);
     }
 
     public CompressorManager(boolean useDeflate1, boolean useDeflate6, boolean useDeflate9, boolean useLZ4,
-                             boolean useLZ4HC, boolean useLZMA, boolean list_files, boolean useTestVector) throws Exception {
+                             boolean useLZ4HC, boolean useLZMA, boolean list_files) throws Exception {
         this.list_files = list_files;
         if (useDeflate1) deflater1 = new Deflater(1);
         if (useDeflate6) deflater6 = new Deflater();
@@ -70,10 +70,6 @@ public class CompressorManager {
 
         dbController = new DBController();
         dbController.createTables();
-
-        if (useTestVector) {
-            compressTestVector();
-        }
     }
 
     public void beginLoop() throws Exception {
@@ -213,18 +209,14 @@ public class CompressorManager {
         return "";
     }
 
-    private void compressTestVector() throws Exception {
-        // COMPRESS TEST VECTOR
+    public void compressTestVectors() throws Exception {
+        // COMPRESS ZERO VECTOR
         if (!dbController.contains("0", 1)) {
-            System.out.println("Compressing test vector...");
-            Random random = new Random(65536); // hardcoded seed makes RNG generate identical test vectors
-            input = new byte[268435456]; // 256 mb
-            random.nextBytes(input);
-            result.setHash("0000000000000000000000000000000000000000000000000000000000000000");
+            System.out.println("Compressing zero vector...");
+            input = new byte[268435456]; // 256 mb, auto initialized to zeros
+            result.setHash("0");
             result.setExt("");
             result.setOrigSize(1);
-            // BEGIN DEFLATE
-            // at level 1
             doDeflate(deflater1);
             dbController.insertResult("deflate1_results", result);
 
@@ -244,8 +236,33 @@ public class CompressorManager {
 
             doLZMA();
             dbController.insertResult("lzma_results", result);
+            System.out.println("Done compressing zero vector.");
 
-            System.out.println("Done compressing test vector.");
+            // COMPRESS RANDOM VECTOR
+            System.out.println("Compressing random test vector...");
+            Random random = new Random(65536); // hardcoded seed makes RNG generate identical test vectors
+            random.nextBytes(input);
+            result.setHash("1"); // Ext and OrigSize already set
+
+            doDeflate(deflater1);
+            dbController.insertResult("deflate1_results", result);
+
+            doDeflate(deflater6);
+            dbController.insertResult("deflate6_results", result);
+
+            doDeflate(deflater9);
+            dbController.insertResult("deflate9_results", result);
+
+            doLZ4();
+            dbController.insertResult("lz4_results", result);
+
+            doLZ4HC();
+            dbController.insertResult("lz4hc_results", result);
+
+            doLZMA();
+            dbController.insertResult("lzma_results", result);
+
+            System.out.println("Done compressing random vector.");
         }
     }
 

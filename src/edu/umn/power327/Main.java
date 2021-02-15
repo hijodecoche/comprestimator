@@ -51,14 +51,19 @@ public class Main {
                 useTestVector = false;
             } else if (arg.contains("help ")) {
                 usage();
+                return;
             } else if (arg.contains("skip-test-vector")) {
                 useTestVector = false;
+            } else {
+                System.out.println("Invalid argument: " + arg);
+                usage();
+                return;
             }
         }
 
         // CREATE COMPRESSION MANAGER
         CompressorManager cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4,
-                useLZ4HC, useLZMA, listFiles, useTestVector);
+                useLZ4HC, useLZMA, listFiles);
 
         FileEnumerator enumerator = new FileEnumerator();
 
@@ -91,6 +96,9 @@ public class Main {
         enumerator = null; // we no longer need enumerator, so free up the memory
 
         cm.setFileList(fileList); // give compression manager the list
+        if (useTestVector) {
+            cm.compressTestVectors();
+        }
 
         cm.beginLoop(); // this is the meat of the operation
 

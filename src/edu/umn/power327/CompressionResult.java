@@ -8,9 +8,9 @@ public class CompressionResult {
 
     public void setHash(String hash) throws Exception {
         // hash stored as hex chars
-        if (hash.length() != 64) {
+        if (hash.length() > 64) {
             System.out.println("hash length: " + hash.length());
-            throw new Exception("Incorrect hash length.");
+            throw new Exception("Hash digest too long.");
         }
         this.hash = hash;
     }
