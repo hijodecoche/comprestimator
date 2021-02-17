@@ -24,32 +24,32 @@ public class Main {
         // PARSE ARGUMENTS
         for(String arg : args) {
             arg = arg.toLowerCase(Locale.ROOT);
-            if (arg.contains("list-files ")) {
+            if (arg.contains("list-files")) {
                 listFiles = true;
                 System.out.println("Comprestimator will print names of compressed files"
                 + "to input_log.txt");
-            } else if (arg.contains("no-deflate1 ")) {
-                useDeflate1 = false;
+            } else if (arg.contains("no-deflate1")) {
+//                useDeflate1 = false;
                 System.out.println("Not using deflate1");
-            } else if (arg.contains("no-deflate6 ")) {
-                useDeflate6 = false;
+            } else if (arg.contains("no-deflate6")) {
+//                useDeflate6 = false;
                 System.out.println("Not using deflate6");
-            } else if (arg.contains("no-deflate9 ")) {
-                useDeflate9 = false;
+            } else if (arg.contains("no-deflate9")) {
+//                useDeflate9 = false;
                 System.out.println("Not using deflate9");
-            } else if (arg.contains("no-lz4 ")) {
-                useLZ4 = false;
+            } else if (arg.contains("no-lz4")) {
+//                useLZ4 = false;
                 System.out.println("Not using LZ4");
-            } else if (arg.contains("no-lz4hc ")) {
-                useLZ4HC = false;
+            } else if (arg.contains("no-lz4hc")) {
+//                useLZ4HC = false;
                 System.out.println("Not using LZ4HC");
-            } else if (arg.contains("no-lzma ")) {
-                useLZMA = false;
+            } else if (arg.contains("no-lzma")) {
+//                useLZMA = false;
                 System.out.println("Not using LZMA");
             } else if (arg.contains("single-file")) {
                 singleFileTest = true;
                 useTestVector = false;
-            } else if (arg.contains("help ")) {
+            } else if (arg.contains("help")) {
                 usage();
                 return;
             } else if (arg.contains("skip-test-vector")) {

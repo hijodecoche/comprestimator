@@ -56,6 +56,7 @@ public class FileEnumerator {
             prohibited.put("/sys", "/sys");
             prohibited.put("/proc", "/proc");
             prohibited.put("/snap", "/snap");
+            prohibited.put("/run", "/run");
         }
 
         return prohibited;

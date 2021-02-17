@@ -90,7 +90,7 @@ public class CompressorManager {
         if (list_files) {
             fw = new FileWriter("input_log.txt");
             System.out.println("Comprestimator will print names of compressed files"
-                    + "to input_log.txt");
+                    + " to input_log.txt");
         }
 
         System.out.println("Beginning compression loop...");
