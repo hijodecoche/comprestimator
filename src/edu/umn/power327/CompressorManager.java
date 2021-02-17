@@ -1,6 +1,5 @@
 package edu.umn.power327;
 
-import SevenZip.LzmaEncoder;
 import edu.umn.power327.database.DBController;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Exception;
@@ -20,8 +19,6 @@ import java.util.zip.*;
 /**
  * Encapsulates all compressors and their uses.
  * TODO: Utilize the partial compressor list; currently the only way to run compressors is to use all, not some.
- * TODO: To preserve speed for the common case (use all compressors), consider breaking the for loop section into one
- * TODO: of two functions: loopAll or loopPartial, where loopPartial checks if (useLZMA) before compressing, etc.
  */
 public class CompressorManager {
 
@@ -29,7 +26,8 @@ public class CompressorManager {
     private Deflater deflater1, deflater6, deflater9;
     private LZ4Compressor lz4Compressor;
     private LZ4Compressor lz4hc;
-    private LzmaEncoder lzmaEncoder;
+    private XZEncoder xz6;
+    private XZEncoder xz9;
 
     private final CompressionResult result = new CompressionResult();
     private ArrayList<File> fileList;
@@ -58,7 +56,10 @@ public class CompressorManager {
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         if (useLZ4) lz4Compressor = lz4Factory.fastCompressor();
         if (useLZ4HC) lz4hc = lz4Factory.highCompressor();
-        if (useLZMA) lzmaEncoder = new LzmaEncoder();
+        if (useLZMA) {
+            xz6 = new XZEncoder();
+            xz9 = new XZEncoder(9);
+        }
 
         if (!GraphicsEnvironment.isHeadless()) {
             robot = new Robot(); // hacky way to keep computer awake
@@ -127,15 +128,15 @@ public class CompressorManager {
                 // BEGIN DEFLATE
                 // at level 1
                 doDeflate(deflater1);
-                dbController.insertResult("deflate1_results", result);
+                dbController.insertResult(DBController.DEFLATE1, result);
 
                 // level 6
                 doDeflate(deflater6);
-                dbController.insertResult("deflate6_results", result);
+                dbController.insertResult(DBController.DEFLATE6, result);
 
                 // level 9
                 doDeflate(deflater9);
-                dbController.insertResult("deflate9_results", result);
+                dbController.insertResult(DBController.DEFLATE9, result);
 
                 // END DEFLATE ////////////////////////////////////////
 
@@ -149,9 +150,9 @@ public class CompressorManager {
                 try {
 
                     doLZ4();
-                    dbController.insertResult("lz4_results", result);
+                    dbController.insertResult(DBController.LZ4, result);
                     doLZ4HC();
-                    dbController.insertResult("lz4hc_results", result);
+                    dbController.insertResult(DBController.LZ4HC, result);
 
                 } catch (LZ4Exception e) {
                     System.out.println("LZ4Exception caught: ");
@@ -161,8 +162,11 @@ public class CompressorManager {
 
                 ///////////////////////////////////////////////////////
                 // BEGIN LZMA
-                doLZMA();
-                dbController.insertResult("lzma_results", result);
+                doLZMA(xz6);
+                dbController.insertResult(DBController.XZ6, result);
+
+                doLZMA(xz9);
+                dbController.insertResult(DBController.XZ9, result);
                 // END LZMA
 
                 if (robot != null) {
@@ -218,24 +222,26 @@ public class CompressorManager {
             result.setExt("");
             result.setOrigSize(1);
             doDeflate(deflater1);
-            dbController.insertResult("deflate1_results", result);
+            dbController.insertResult(DBController.DEFLATE1, result);
 
-            // level 6
             doDeflate(deflater6);
-            dbController.insertResult("deflate6_results", result);
+            dbController.insertResult(DBController.DEFLATE6, result);
 
-            // level 9
             doDeflate(deflater9);
-            dbController.insertResult("deflate9_results", result);
+            dbController.insertResult(DBController.DEFLATE9, result);
 
             doLZ4();
-            dbController.insertResult("lz4_results", result);
+            dbController.insertResult(DBController.LZ4, result);
 
             doLZ4HC();
-            dbController.insertResult("lz4hc_results", result);
+            dbController.insertResult(DBController.LZ4HC, result);
 
-            doLZMA();
-            dbController.insertResult("lzma_results", result);
+            doLZMA(xz6);
+            dbController.insertResult(DBController.XZ6, result);
+
+            doLZMA(xz9);
+            dbController.insertResult(DBController.XZ9, result);
+
             System.out.println("Done compressing zero vector.");
 
             // COMPRESS RANDOM VECTOR
@@ -245,22 +251,25 @@ public class CompressorManager {
             result.setHash("1"); // Ext and OrigSize already set
 
             doDeflate(deflater1);
-            dbController.insertResult("deflate1_results", result);
+            dbController.insertResult(DBController.DEFLATE1, result);
 
             doDeflate(deflater6);
-            dbController.insertResult("deflate6_results", result);
+            dbController.insertResult(DBController.DEFLATE6, result);
 
             doDeflate(deflater9);
-            dbController.insertResult("deflate9_results", result);
+            dbController.insertResult(DBController.DEFLATE9, result);
 
             doLZ4();
-            dbController.insertResult("lz4_results", result);
+            dbController.insertResult(DBController.LZ4, result);
 
             doLZ4HC();
-            dbController.insertResult("lz4hc_results", result);
+            dbController.insertResult(DBController.LZ4HC, result);
 
-            doLZMA();
-            dbController.insertResult("lzma_results", result);
+            doLZMA(xz6);
+            dbController.insertResult(DBController.XZ6, result);
+
+            doLZMA(xz9);
+            dbController.insertResult(DBController.XZ9, result);
 
             System.out.println("Done compressing random vector.");
         }
@@ -279,7 +288,7 @@ public class CompressorManager {
     // Functions for individual compressors: //
     ///////////////////////////////////////////
 
-    private void doDeflate(Deflater deflater) throws SQLException {
+    private void doDeflate(Deflater deflater) {
         deflater.setInput(input);
         deflater.finish(); // signals that no new input will enter the buffer
         int byteCount = 0;
@@ -295,26 +304,25 @@ public class CompressorManager {
         result.setCompressTime((stop - start) / 1000);
     }
 
-    private void doLZ4() throws SQLException {
+    private void doLZ4() {
         start = System.nanoTime();
         result.setCompressSize(lz4Compressor.compress(input, output));
         stop = System.nanoTime();
         result.setCompressTime((stop - start) / 1000);
     }
 
-    private void doLZ4HC() throws SQLException {
-        // LZ4HC
+    private void doLZ4HC() {
         start = System.nanoTime();
         result.setCompressSize(lz4hc.compress(input, output));
         stop = System.nanoTime();
         result.setCompressTime((stop - start) / 1000);
     }
 
-    private void doLZMA() throws Exception {
+    private void doLZMA(XZEncoder xzEncoder) throws Exception {
         start = System.nanoTime();
-        result.setCompressSize(lzmaEncoder.encode(input));
+        result.setCompressSize(xzEncoder.encode(input));
         stop = System.nanoTime();
         result.setCompressTime((stop - start) / 1000);
-        lzmaEncoder.reset();
+        xzEncoder.reset();
     }
 }

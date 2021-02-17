@@ -10,7 +10,17 @@ import java.sql.*;
  * orig and compressed file sizes in bytes.
  */
 public class DBController {
+
     private final Connection con;
+
+    // Table names
+    public static String DEFLATE1 = "deflate1_results";
+    public static String DEFLATE6 = "deflate6_results";
+    public static String DEFLATE9 = "deflate9_results";
+    public static String LZ4 = "lz4_results";
+    public static String LZ4HC = "lz4hc_results";
+    public static String XZ6 = "xz6_results";
+    public static String XZ9 = "xz9_results";
 
     public DBController() throws SQLException {
         con = DriverManager.getConnection("jdbc:sqlite:test.db");
@@ -18,9 +28,8 @@ public class DBController {
 
     /**
      * Creates tables for storing results.
-     * @throws SQLException
      */
-    public void createTables() throws SQLException {
+    public void createTables() {
         String defaultSchema = "hash CHAR(64) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size INT NOT NULL,\n"
@@ -28,13 +37,19 @@ public class DBController {
                 + "compress_time INT NOT NULL,\n"
                 + "file_type VARCHAR(32),\n"
                 + "PRIMARY KEY(hash, orig_size));";
-        Statement stmt = con.createStatement();
-        stmt.execute("CREATE TABLE IF NOT EXISTS deflate1_results(\n" + defaultSchema);
-        stmt.execute("CREATE TABLE IF NOT EXISTS deflate6_results(\n" + defaultSchema);
-        stmt.execute("CREATE TABLE IF NOT EXISTS deflate9_results(\n" + defaultSchema);
-        stmt.execute("CREATE TABLE IF NOT EXISTS lz4_results(\n" + defaultSchema);
-        stmt.execute("CREATE TABLE IF NOT EXISTS lz4hc_results(\n" + defaultSchema);
-        stmt.execute("CREATE TABLE IF NOT EXISTS lzma_results(\n" + defaultSchema);
+        try {
+            Statement stmt = con.createStatement();
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + DEFLATE1 + "(\n" + defaultSchema);
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + DEFLATE6 + "(\n" + defaultSchema);
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + DEFLATE9 + "(\n" + defaultSchema);
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + LZ4 + "(\n" + defaultSchema);
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + LZ4HC + "(\n" + defaultSchema);
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + XZ6 + "(\n" + defaultSchema);
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + XZ9 + "(\n" + defaultSchema);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -44,7 +59,7 @@ public class DBController {
      * @param origSize original size in kb
      * @param compressSize compressed size in kb
      * @param compressTime time it took to compress file, in milliseconds
-     * @throws SQLException
+     * @throws SQLException if table does not exist
      */
     public void insertResult(String table, String hash, String file_ext, int origSize,
                              int compressSize, long compressTime, String type) throws SQLException {
@@ -58,7 +73,7 @@ public class DBController {
      * Convenience method for abstracting the compression result.
      * @param table table to store the result.
      * @param result CompressionResult object with necessary values.
-     * @throws SQLException
+     * @throws SQLException if table does not exist
      */
     public void insertResult(String table, CompressionResult result) throws SQLException {
         insertResult(table, result.getHash(), result.getExt(), result.getOrigSize(),
@@ -89,8 +104,7 @@ public class DBController {
      * @return true if database contains results from this file in all tables, else false
      */
     public boolean contains(String hash, long origSize) {
-        String[] tables = {"deflate1_results", "deflate6_results", "deflate9_results",
-                "lz4_results", "lz4hc_results", "lzma_results"};
+        String[] tables = {DEFLATE1, DEFLATE6, DEFLATE9, LZ4, LZ4HC, XZ6, XZ9};
         boolean inAllTables = true;
         for (String table : tables) {
             try {
@@ -109,7 +123,7 @@ public class DBController {
      * @param table table containing entry to delete
      * @param hash hash of file
      * @param origSize original size of file
-     * @throws SQLException
+     * @throws SQLException if table does not exist
      */
     public void deleteResult(String table, String hash, long origSize) throws SQLException {
         Statement s = con.createStatement();
@@ -123,8 +137,7 @@ public class DBController {
      * @param origSize original size of file
      */
     public void deleteFromAll(String hash, long origSize) {
-        String[] tables = {"deflate1_results", "deflate6_results", "deflate9_results",
-                "lz4_results", "lz4hc_results", "lzma_results"};
+        String[] tables = {DEFLATE1, DEFLATE6, DEFLATE9, LZ4, LZ4HC, XZ6, XZ9};
 
         for(String table : tables) {
             try {
