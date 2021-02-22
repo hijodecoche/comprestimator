@@ -76,23 +76,19 @@ public class FileEnumerator {
             this.prohibited = prohibited;
         }
 
-        @Override
         public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
             this.list.add(path.toFile());
             return FileVisitResult.CONTINUE;
         }
 
-        @Override
         public FileVisitResult visitFileFailed(Path path, IOException e) {
             return FileVisitResult.SKIP_SUBTREE;
         }
 
-        @Override
         public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
             return FileVisitResult.CONTINUE;
         }
 
-        @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             if (prohibited.containsKey(dir.toString())) {
                 return FileVisitResult.SKIP_SUBTREE;

@@ -34,8 +34,8 @@ public class CompressorManager {
     private byte[] input;
     private final byte[] output = new byte[1610612736]; // 1.5 GB
     private long start, stop;
-    private boolean list_files = false;
-    private DBController dbController;
+    private final boolean list_files;
+    private final DBController dbController = new DBController();;
     private Robot robot; // will be instantiated if not headless env
 
     /**
@@ -43,7 +43,7 @@ public class CompressorManager {
      * @throws Exception from LZMAEncoder, Robot, DBController, etc.
      */
     public CompressorManager() throws Exception {
-        new CompressorManager(true, true, true, true, true, true,
+        this(true, true, true, true, true, true,
                 false);
     }
 
@@ -69,7 +69,6 @@ public class CompressorManager {
             System.out.println("Check README if you need help.\n\t------------------------------");
         }
 
-        dbController = new DBController();
         dbController.createTables();
     }
 
@@ -105,7 +104,7 @@ public class CompressorManager {
                 if (!file.isFile()) {
                     continue;
                 }
-                // fetch file type, if filesystem has sh
+                // fetch file type, if available
                 if (fetcher != null) {
                     result.setType(fetcher.fetchType(file.getPath()));
                 }
@@ -173,18 +172,11 @@ public class CompressorManager {
                     mousePoint = MouseInfo.getPointerInfo().getLocation();
                     robot.mouseMove(mousePoint.x, mousePoint.y);
                 }
-            } catch (OutOfMemoryError e) {
-                System.out.println(" --- OOM Error caught:");
-                System.out.println(file.getPath());
-                System.out.println("Continuing compression loop...");
             } catch (SQLException e) {
                 // this almost certainly means the file command isn't working
                 // set it to null to skip future file attempts
                 fetcher = null;
-            } catch (IOException ignored) {
-                // catches AccessDenied and FileNotFound
-                // continue;
-            }
+            } catch (OutOfMemoryError | IOException ignored) { }
 
         } // END COMPRESSION LOOP
     }

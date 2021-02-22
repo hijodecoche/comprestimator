@@ -7,7 +7,7 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-	// code goes here omg!
+
         System.out.println("Welcome to comprestimator!");
         System.out.println("---------------- \\(^o^)/ ----------------");
 
@@ -73,7 +73,7 @@ public class Main {
             // ENUMERATE FILES
             System.out.println("Beginning filesystem enumeration...");
             fileList = enumerator.enumerateFiles();
-            Collections.shuffle(fileList); // not really necessary unless we expect partial results from a participant
+            Collections.shuffle(fileList); //  we expect partial results from a participant
             System.out.println("...enumeration complete.");
         } else {
             Scanner scanner = new Scanner(System.in);
