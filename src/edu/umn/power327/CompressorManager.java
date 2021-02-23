@@ -35,7 +35,7 @@ public class CompressorManager {
     private final byte[] output = new byte[1610612736]; // 1.5 GB
     private long start, stop;
     private final boolean list_files;
-    private final DBController dbController = new DBController();;
+    private final DBController dbController = new DBController();
     private Robot robot; // will be instantiated if not headless env
 
     /**
@@ -102,6 +102,10 @@ public class CompressorManager {
                 }
                 // weed out pseudo-files
                 if (!file.isFile()) {
+                    continue;
+                }
+                if (file.length() > 1073741824) {
+                    // file is larger than 1 GB
                     continue;
                 }
                 // fetch file type, if available

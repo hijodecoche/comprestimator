@@ -75,6 +75,7 @@ public class Main {
             fileList = enumerator.enumerateFiles();
             Collections.shuffle(fileList); //  we expect partial results from a participant
             System.out.println("...enumeration complete.");
+            System.out.flush();
         } else {
             Scanner scanner = new Scanner(System.in);
             System.out.println("Enter the path to some file: ");
