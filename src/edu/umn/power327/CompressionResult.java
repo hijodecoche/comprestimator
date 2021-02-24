@@ -27,8 +27,11 @@ public class CompressionResult {
         return compressTime;
     }
 
-    public void setCompressTime(long compressTime) {
-        this.compressTime = compressTime;
+    public void setCompressTime(long compressTime) throws Exception {
+        if (compressTime < 0)
+            throw new Exception("CompressTime cannot be negative.");
+        else
+            this.compressTime = compressTime;
     }
 
     public int getOrigSize() {
@@ -43,9 +46,11 @@ public class CompressionResult {
         return compressSize;
     }
 
-    public void setCompressSize(int compressSize) {
+    public void setCompressSize(int compressSize)  throws Exception {
         if (compressSize > 0)
             this.compressSize = compressSize;
+        else
+            throw new Exception("Size cannot be less than zero.");
     }
 
     public String getType() {
@@ -65,6 +70,7 @@ public class CompressionResult {
         System.out.println("compress_size: " + this.compressSize);
         System.out.println("compress_time: " + this.compressTime);
         System.out.println("Extension: " + this.ext);
+        System.out.println("Type: " + this.type);
     }
 
     private String hash;

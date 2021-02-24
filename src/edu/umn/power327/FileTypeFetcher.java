@@ -24,7 +24,9 @@ public class FileTypeFetcher {
         Process process = pb.start();
         BufferedReader br = new BufferedReader(
                 new InputStreamReader(process.getInputStream()));
-        result = br.readLine().replace('\'', '"');
+        result = br.readLine().replace("$", "\\$")
+                    .replace('\'', '"').replace("(", "\\(")
+                    .replace(")", "\\)").replace(" ", "\\ ");
 
         return result;
     }

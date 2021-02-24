@@ -179,6 +179,7 @@ public class CompressorManager {
             } catch (SQLException e) {
                 // this almost certainly means the file command isn't working
                 // set it to null to skip future file attempts
+                e.printStackTrace();
                 fetcher = null;
             } catch (OutOfMemoryError | IOException ignored) { }
 
@@ -284,7 +285,7 @@ public class CompressorManager {
     // Functions for individual compressors: //
     ///////////////////////////////////////////
 
-    private void doDeflate(Deflater deflater) {
+    private void doDeflate(Deflater deflater) throws Exception {
         deflater.setInput(input);
         deflater.finish(); // signals that no new input will enter the buffer
         int byteCount = 0;
@@ -300,14 +301,14 @@ public class CompressorManager {
         result.setCompressTime((stop - start) / 1000);
     }
 
-    private void doLZ4() {
+    private void doLZ4() throws Exception {
         start = System.nanoTime();
         result.setCompressSize(lz4Compressor.compress(input, output));
         stop = System.nanoTime();
         result.setCompressTime((stop - start) / 1000);
     }
 
-    private void doLZ4HC() {
+    private void doLZ4HC() throws Exception {
         start = System.nanoTime();
         result.setCompressSize(lz4hc.compress(input, output));
         stop = System.nanoTime();
