@@ -19,14 +19,18 @@ public class FileTypeFetcher {
 
     public String fetchType(String filename) throws IOException {
         commandString.remove(2);
-        commandString.add("file -b " + filename);
-        String result;
+        commandString.add("file -b " + "\"" + filename.replace("$", "\\$")
+                .replace("(", "\\(").replace(")", "\\)")
+                .replace(" ", "\\ ") + "\"");
         Process process = pb.start();
-        BufferedReader br = new BufferedReader(
-                new InputStreamReader(process.getInputStream()));
-        result = br.readLine().replace("$", "\\$")
-                    .replace('\'', '"').replace("(", "\\(")
-                    .replace(")", "\\)").replace(" ", "\\ ");
+        String result;
+        try {
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
+            result = br.readLine().replace('\'', '"');
+        } catch (NullPointerException e) {
+            result = "";
+        }
 
         return result;
     }
