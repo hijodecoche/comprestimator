@@ -19,9 +19,7 @@ public class FileTypeFetcher {
 
     public String fetchType(String filename) throws IOException {
         commandString.remove(2);
-        commandString.add("file -b " + "\"" + filename.replace("$", "\\$")
-                .replace("(", "\\(").replace(")", "\\)")
-                .replace(" ", "\\ ") + "\"");
+        commandString.add("file -b " + "\"" + filename.replace("\"", "\\\"") + "\"");
         Process process = pb.start();
         String result;
         try {
@@ -29,6 +27,7 @@ public class FileTypeFetcher {
                     new InputStreamReader(process.getInputStream()));
             result = br.readLine().replace('\'', '"');
         } catch (NullPointerException e) {
+            System.out.println("Path causing issue: " + filename);
             result = "";
         }
 

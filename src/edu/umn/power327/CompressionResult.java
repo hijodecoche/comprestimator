@@ -27,11 +27,8 @@ public class CompressionResult {
         return compressTime;
     }
 
-    public void setCompressTime(long compressTime) throws Exception {
-        if (compressTime < 0)
-            throw new Exception("CompressTime cannot be negative.");
-        else
-            this.compressTime = compressTime;
+    public void setCompressTime(long compressTime) {
+        this.compressTime = compressTime;
     }
 
     public int getOrigSize() {
@@ -46,11 +43,8 @@ public class CompressionResult {
         return compressSize;
     }
 
-    public void setCompressSize(int compressSize)  throws Exception {
-        if (compressSize > 0)
-            this.compressSize = compressSize;
-        else
-            throw new Exception("Size cannot be less than zero.");
+    public void setCompressSize(int compressSize) {
+        this.compressSize = compressSize;
     }
 
     public String getType() {

@@ -2,6 +2,8 @@ package edu.umn.power327;
 
 import org.tukaani.xz.*;
 
+import java.io.IOException;
+
 /**
  * This class encapsulates simple LZMA encoding for the purposes of Comprestimator.
  * For simplicity and efficiency, this encoder does not write compressed data to memory.  Instead, it sends data to
@@ -10,17 +12,24 @@ import org.tukaani.xz.*;
 public class XZEncoder {
 
     private final NullOutputStream nos;
-    private final LZMAOutputStream los;
+    private XZOutputStream los;
+    private final LZMA2Options options = new LZMA2Options();
 
+    /**
+     * Create a new XZ compressor at specified level.
+     * Valid levels are 0 (minimum compression) to 9 (maximum compression).
+     * @param level Compression level between 0 and 9 (inclusive)
+     * @throws Exception for unsupported LZMA2Options or IOException when creating OutputStream.
+     */
     public XZEncoder(int level) throws Exception {
-        LZMA2Options options = new LZMA2Options();
+
         nos = new NullOutputStream();
 
-        if (level > 0 && level < 10) {
+        if (level >= 0 && level < 10) {
             options.setPreset(level);
         }
 
-        los = new LZMAOutputStream(nos, options, false); // false prevents writing end marker
+        los = new XZOutputStream(nos, options, XZ.CHECK_NONE); // skip integrity check
     }
 
     public XZEncoder() throws Exception {
@@ -29,10 +38,12 @@ public class XZEncoder {
 
     public int encode(byte[] input) throws Exception {
         los.write(input, 0, input.length);
+        los.finish();
         return nos.size();
     }
 
-    public void reset() {
+    public void reset() throws IOException {
+        los = new XZOutputStream(nos, options, XZ.CHECK_NONE);
         nos.resetByteCount();
     }
 }

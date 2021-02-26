@@ -3,7 +3,7 @@ package edu.umn.power327;
 import java.io.OutputStream;
 
 public class NullOutputStream extends OutputStream {
-    protected int count = 0;
+    private int count = 0;
 
     @Override
     public void write(int b) {
@@ -17,9 +17,7 @@ public class NullOutputStream extends OutputStream {
 
     @Override
     public void write(byte[] b, int off, int len) {
-        if(len >= 0) {
-            count += len;
-        }
+        count += len;
     }
 
     @Override
