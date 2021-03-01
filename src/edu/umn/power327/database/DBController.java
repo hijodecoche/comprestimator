@@ -7,7 +7,7 @@ import java.sql.*;
 /**
  * Interacts with local SQLite DB VERSION 100
  * Will hold file sha256 hash, file extension, compress time in microseconds,
- * orig and compressed file sizes in bytes, and results of `file` command.
+ * orig and compressed file sizes in bytes, results of `file` command.
  */
 public class DBController {
 
