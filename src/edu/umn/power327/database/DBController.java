@@ -5,9 +5,9 @@ import edu.umn.power327.CompressionResult;
 import java.sql.*;
 
 /**
- * Interacts with local SQLite DB.
- * Will hold file sha256 hash, unique fileID, compress time in millis,
- * orig and compressed file sizes in bytes.
+ * Interacts with local SQLite DB VERSION 100
+ * Will hold file sha256 hash, file extension, compress time in millis,
+ * orig and compressed file sizes in bytes, results of `file` command.
  */
 public class DBController {
 
@@ -21,6 +21,9 @@ public class DBController {
     public static String LZ4HC = "lz4hc_results";
     public static String XZ6 = "xz6_results";
     public static String XZ9 = "xz9_results";
+
+    // TODO: Always change version id when altering this file
+    public static int VERSION = 101;
 
     public DBController() throws SQLException {
         con = DriverManager.getConnection("jdbc:sqlite:test.db");
@@ -39,6 +42,9 @@ public class DBController {
                 + "PRIMARY KEY(hash, orig_size));";
         try {
             Statement stmt = con.createStatement();
+
+            // set version id
+            stmt.execute("PRAGMA application_id=" + VERSION + ";");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS " + DEFLATE1 + "(\n" + defaultSchema);
             stmt.execute("CREATE TABLE IF NOT EXISTS " + DEFLATE6 + "(\n" + defaultSchema);
@@ -118,8 +124,8 @@ public class DBController {
     }
 
     /**
-     * Deletes an entry from a single table.  Currently used for running test on single file, if file to test has
-     * already been stored. Uses hash, origSize to identify the unique file using primary key.
+     * Deletes an entry from a single table.
+     * Uses hash, origSize to identify the unique file using primary key.
      * @param table table containing entry to delete
      * @param hash hash of file
      * @param origSize original size of file
