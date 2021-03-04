@@ -11,7 +11,8 @@ import java.sql.*;
  */
 public class DBController {
 
-    private final Connection con;
+    private static final DBController dbInstance;
+    private Connection con = null;
 
     // Table names
     public static String DEFLATE1 = "deflate1_results";
@@ -23,10 +24,20 @@ public class DBController {
     public static String XZ9 = "xz9_results";
 
     // TODO: Always change version id when altering this file
-    public static int VERSION = 101;
+    public static int VERSION = 102;
 
-    public DBController() throws SQLException {
-        con = DriverManager.getConnection("jdbc:sqlite:test.db");
+    private DBController() {
+        try {
+            con = DriverManager.getConnection("jdbc:sqlite:test.db");
+        } catch (SQLException ignored) { }
+    }
+
+    static {
+        dbInstance = new DBController();
+    }
+
+    public static DBController getInstance() {
+        return dbInstance;
     }
 
     /**

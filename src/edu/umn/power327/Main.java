@@ -1,5 +1,7 @@
 package edu.umn.power327;
 
+import edu.umn.power327.files.FileEnumerator;
+
 import java.io.File;
 import java.nio.file.*;
 import java.util.*;
@@ -68,6 +70,9 @@ public class Main {
         FileEnumerator enumerator = new FileEnumerator();
 
         ArrayList<File> fileList;
+
+        enumerator.enumFiles();
+        if (singleFileTest) return;
 
         if (!singleFileTest) {
             // ENUMERATE FILES

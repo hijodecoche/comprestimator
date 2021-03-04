@@ -1,6 +1,7 @@
 package edu.umn.power327;
 
 import edu.umn.power327.database.DBController;
+import edu.umn.power327.files.FileTypeFetcher;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Exception;
 import net.jpountz.lz4.LZ4Factory;
@@ -36,7 +37,7 @@ public class CompressorManager {
     private final byte[] output = new byte[1610612736]; // 1.5 GB
     private long start, stop;
     private final boolean list_files;
-    private final DBController dbController = new DBController();
+    private final DBController dbController = DBController.getInstance();
     private Robot robot; // will be instantiated if not headless env
 
     /**
@@ -70,7 +71,10 @@ public class CompressorManager {
             System.out.println("Check README if you need help.\n\t------------------------------");
         }
 
-        dbController.createTables();
+        if (dbController != null)
+            dbController.createTables();
+        else
+            throw new Exception("Could not get database instance!");
     }
 
     private void compressAndStoreAll() throws Exception {
