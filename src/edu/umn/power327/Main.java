@@ -1,6 +1,6 @@
 package edu.umn.power327;
 
-import edu.umn.power327.files.FileEnumerator;
+import edu.umn.power327.files.FileList;
 
 import java.io.File;
 import java.nio.file.*;
@@ -19,8 +19,6 @@ public class Main {
 
         // SINGLE FILE TEST VARS
         boolean singleFileTest = false; // flag for test
-        String singleFile; // user input of path name
-        Path path; // path to single file
 
 
         // PARSE ARGUMENTS
@@ -63,43 +61,30 @@ public class Main {
             }
         }
 
-        // CREATE COMPRESSION MANAGER
-        CompressorManager cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4,
-                useLZ4HC, useLZMA, listFiles);
+        CompressorManager cm; // delay creation in case this is a single file test
 
-        FileEnumerator enumerator = new FileEnumerator();
-
-        ArrayList<File> fileList;
-
-        enumerator.enumFiles();
-        if (singleFileTest) return;
-
-        if (!singleFileTest) {
-            // ENUMERATE FILES
-            System.out.println("Beginning filesystem enumeration...");
-            fileList = enumerator.enumerateFiles();
-            Collections.shuffle(fileList); //  we expect partial results from a participant
-            System.out.println("...enumeration complete.");
-            System.out.flush();
-        } else {
+        if (singleFileTest) {
             Scanner scanner = new Scanner(System.in);
             System.out.println("Enter the path to some file: ");
-            singleFile = scanner.nextLine();
             try {
-                FileSystem fs = FileSystems.getDefault();
-                path = fs.getPath(singleFile);
-                fileList = new ArrayList<>(1);
-                fileList.add(0, path.toFile());
+                cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4,
+                        useLZ4HC, useLZMA, listFiles);
+                cm.singleFileTest(new File(scanner.nextLine()));
             } catch (InvalidPathException e) {
                 System.out.println("Bad path. Exiting.");
-                return;
             }
+            return;
         }
-        // not sure if setting enumerator to null will actually destroy the object...
-        // ...because fileList might be tied to the enumerator object
-        // if that's the case, we need to make fileList an object passed into enumerator during construction
-        // or deep copy the list later (which would be inefficient)
-        enumerator = null; // we no longer need enumerator, so free up the memory
+
+        System.out.println("Beginning filesystem enumeration...");
+        FileList fileList = new FileList();
+        System.out.println("...enumeration complete.");
+        System.out.flush();
+
+
+        // CREATE COMPRESSION MANAGER
+        cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4,
+                useLZ4HC, useLZMA, listFiles);
 
         cm.setFileList(fileList); // give compression manager the list
         if (useTestVector) {
@@ -108,15 +93,6 @@ public class Main {
 
         cm.beginLoop(); // this is the meat of the operation
 
-        if (singleFileTest) {
-            cm.getResult().printToConsole();
-        }
-
-        // DELETE ENUMERATION FILE, IF EXISTS
-        try {
-            File file = new File("enumeration.dat");
-            file.delete(); // throws FileNotFoundException
-        } catch (Exception ignored) { }
         System.out.println("Exited successfully!");
     }
 

@@ -5,7 +5,7 @@ import edu.umn.power327.CompressionResult;
 import java.sql.*;
 
 /**
- * Interacts with local SQLite DB VERSION 100
+ * Interacts with local SQLite DB VERSION 103
  * Will hold file sha256 hash, file extension, compress time in microseconds,
  * orig and compressed file sizes in bytes, results of `file` command.
  */
@@ -24,7 +24,8 @@ public class DBController {
     public static String XZ9 = "xz9_results";
 
     // TODO: Always change version id when altering this file
-    public static int VERSION = 102;
+    // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
+    public static int VERSION = 103;
 
     private DBController() {
         try {
@@ -54,6 +55,9 @@ public class DBController {
         try {
             Statement stmt = con.createStatement();
 
+            // check if DB has incompatible version
+            if ((getDBVersion() / 100) > (VERSION / 100))
+                throw new SQLException("Incompatible database version.");
             // set version id
             stmt.execute("PRAGMA application_id=" + VERSION + ";");
 
@@ -161,5 +165,22 @@ public class DBController {
                 deleteResult(table, hash, origSize);
             } catch (SQLException ignored){ }
         }
+    }
+
+    public void updateStartIndex(int index) throws SQLException {
+        Statement s = con.createStatement();
+        s.execute("PRAGMA user_version = " + index + ";");
+    }
+
+    public int getStartIndex() throws SQLException {
+        Statement s = con.createStatement();
+        ResultSet rs = s.executeQuery("SELECT * from pragma_user_version;");
+        return rs.getInt(0);
+    }
+
+    private int getDBVersion() throws SQLException {
+        Statement s = con.createStatement();
+        ResultSet rs = s.executeQuery("SELECT * from pragma_application_id;");
+        return rs.getInt(0);
     }
 }

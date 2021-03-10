@@ -38,7 +38,7 @@ public class XZEncoder {
 
     public int encode(byte[] input) throws Exception {
         los.write(input, 0, input.length);
-        los.finish();
+        los.close();
         return nos.size();
     }
 

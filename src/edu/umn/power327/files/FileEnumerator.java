@@ -42,37 +42,6 @@ public class FileEnumerator {
         return list;
     }
 
-    public void enumFiles() throws Exception {
-        boolean isWindows = System.getProperty("os.name")
-                .toLowerCase().startsWith("windows");
-        if (isWindows) {
-            enumerateWindows();
-        }
-        else
-            enumerateUnix();
-    }
-
-    public void enumerateWindows() throws IOException, InterruptedException {
-
-        ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/s", "dir /b /s /a:-D > enumeration.dat");
-        System.out.println(System.currentTimeMillis());
-        for (Path p : FileSystems.getDefault().getRootDirectories()) {
-            pb.directory(p.toFile());
-            pb.start().waitFor();
-            System.out.println(p.toFile());
-        }
-        System.out.println(System.currentTimeMillis());
-
-    }
-
-    private void enumerateUnix() throws Exception {
-//        System.out.println("Detected unix");
-        ProcessBuilder pb = new ProcessBuilder("sh", "-c", "find / > enumeration.dat");
-        System.out.println(System.currentTimeMillis());
-        pb.start().waitFor();
-        System.out.println(System.currentTimeMillis());
-    }
-
     private HashMap<String, String> getProhibitedList() {
         HashMap<String, String> prohibited = new HashMap<>();
         try {

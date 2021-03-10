@@ -5,89 +5,140 @@ import edu.umn.power327.database.DBController;
 import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.concurrent.Executors;
 
 public class FileList {
 
-    private ArrayList<String> fileList = null;
     private BufferedReader reader;
     private final DBController dbController = DBController.getInstance();
-    private RandomAccessFile raf;
-    private long startIndex = 0;
+    private int startIndex;
+    private final ArrayList<String> prohibited;
 
     public FileList() throws Exception {
-        fileList = new ArrayList<>();
-        raf = new RandomAccessFile("placeholder.dat", "rw");
         try {
             FileReader fr = new FileReader("enumeration.dat");
             reader = new BufferedReader(fr);
-            startIndex = raf.readLong();
-            System.out.println("Resuming previous enumeration...");
-            if (startIndex < 0 || !findPlace()){
+            System.out.println("Loading previous enumeration...");
+            startIndex = dbController.getStartIndex();
+            if (startIndex < 0 || !findPlace()) {
                 throw new Exception("Could not seek to specified line");
             }
             System.out.println("Successfully found where we left off!");
 
         } catch (Exception e) {
-            enumFiles();
-            Collections.shuffle(fileList);
+            ArrayList<String> fileStringList = new ArrayList<>();
+
+            /* DEBUGGING */
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+            Date resultdate = new Date(System.currentTimeMillis());
+            System.out.println("Enumeration began " + sdf.format(resultdate));
+            /* END DEBUGGING */
+
+            enumFiles(fileStringList);
+            Collections.shuffle(fileStringList);
             BufferedWriter bw = new BufferedWriter(new FileWriter("enumeration.dat", false));
-            raf.writeLong(0);
-            for (String s : fileList) {
+            for (String s : fileStringList) {
                 bw.write(s);
+                bw.newLine(); // maybe replace with + "\n" above
             }
-            bw.flush();
+            bw.close();
+
+            /* DEBUGGING */
+            resultdate = new Date(System.currentTimeMillis());
+            System.out.println("Enumeration completed " + sdf.format(resultdate));
+            /* END DEBUGGING */
+
+            FileReader fr = new FileReader("enumeration.dat");
+            reader = new BufferedReader(fr);
         }
 
-        if (dbController == null)
-            throw new Exception("Could not get database instance!");
+        // fill prohibited with skip_list
+        prohibited = new ArrayList<>();
+        try {
+            FileReader fr = new FileReader("skip_list.txt");
+            BufferedReader br = new BufferedReader(fr);
+            String line;
+            while ((line = br.readLine()) != null) {
+                prohibited.add(line);
+            }
+        } catch (IOException e) {
+            prohibited.add("/dev");
+            prohibited.add("/sys");
+            prohibited.add("/proc");
+            prohibited.add("/snap");
+            prohibited.add("/run");
+        }
     }
 
-    public void enumFiles() throws Exception {
+    public void enumFiles(ArrayList<String> fileList) throws Exception {
         boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
         if (isWindows) {
-            enumerateWindows();
+            enumerateWindows(fileList);
         }
         else
-            enumerateUnix();
+            enumerateUnix(fileList);
     }
 
-    private void enumerateWindows() throws IOException, InterruptedException {
+    private void enumerateWindows(ArrayList<String> fileList) throws InterruptedException {
         Process process;
-        ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/s", "dir /b /s /a:-D");
-        System.out.println(System.currentTimeMillis());
+        ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", "dir /b /s /a:-D");
         for (Path p : FileSystems.getDefault().getRootDirectories()) {
-            pb.directory(p.toFile());
-            process = pb.start();
-            LineParser lineParser = new LineParser(process.getInputStream(), fileList);
-            Executors.newSingleThreadExecutor().submit(lineParser);
-            int exit = process.waitFor();
-            System.out.println(p.toFile());
+            try {
+                pb.directory(p.toFile());
+                process = pb.start();
+                LineParser lineParser = new LineParser(process.getInputStream(), fileList);
+                Executors.newSingleThreadExecutor().submit(lineParser);
+                int exit = process.waitFor();
+            } catch (IOException ignored) {}
         }
-        System.out.println(System.currentTimeMillis());
-
     }
 
-    private void enumerateUnix() throws InterruptedException, IOException {
+    private void enumerateUnix(ArrayList<String> fileList) throws InterruptedException, IOException {
 //        System.out.println("Detected unix");
-        ProcessBuilder pb = new ProcessBuilder("sh", "-c", "find / > enumeration.dat");
-        System.out.println(System.currentTimeMillis());
+        ProcessBuilder pb = new ProcessBuilder("sh", "-c", "find /");
         Process process = pb.start();
         LineParser lineParser = new LineParser(process.getInputStream(), fileList);
         Executors.newSingleThreadExecutor().submit(lineParser);
         int exit = process.waitFor();
-        System.out.println(System.currentTimeMillis());
     }
 
-    public File getNext() throws IOException {
-        startIndex++;
-        // write startIndex to raf
-        raf.seek(0);
-        raf.writeLong(startIndex);
-        // return the next string
-        return new File(reader.readLine());
+    /**
+     * Gets next file name from stream, checks if file is in the prohibited list, and advances the startIndex
+     * stored in the DB.
+     * @return A new file, or null if reached end of stream
+     */
+    public File getNext() {
+        File file = null;
+        while (file == null) {
+            if (startIndex < Integer.MAX_VALUE) startIndex++;
+
+            try {
+                String path = reader.readLine();
+                // check if file is prohibited
+                for (String s : prohibited) {
+                    if (path.startsWith(s)) {
+                        throw new IOException("File is prohibited.");
+                    }
+                }
+                file = new File(path);
+            } catch (IOException ignored) {
+                // file does not exist or cannot be opened
+            } catch (NullPointerException e) {
+                // we reached the end of the enumeration file
+                return null;
+            }
+        }
+
+        try {
+            dbController.updateStartIndex(startIndex);
+        } catch (SQLException ignored) {}
+
+        return file;
     }
 
     private boolean findPlace() {
