@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class FileList {
 
@@ -31,6 +32,7 @@ public class FileList {
             System.out.println("Successfully found where we left off!");
 
         } catch (Exception e) {
+            dbController.updateStartIndex(0);
             ArrayList<String> fileStringList = new ArrayList<>();
 
             /* DEBUGGING */
@@ -91,19 +93,21 @@ public class FileList {
             try {
                 pb.directory(p.toFile());
                 process = pb.start();
-                LineParser lineParser = new LineParser(process.getInputStream(), fileList);
-                Executors.newSingleThreadExecutor().submit(lineParser);
+                StreamGobbler gobbler = new StreamGobbler(process.getInputStream(), fileList::add);
+                Executors.newSingleThreadExecutor().submit(gobbler);
                 int exit = process.waitFor();
             } catch (IOException ignored) {}
         }
     }
 
     private void enumerateUnix(ArrayList<String> fileList) throws InterruptedException, IOException {
-//        System.out.println("Detected unix");
-        ProcessBuilder pb = new ProcessBuilder("sh", "-c", "find /");
+        ProcessBuilder pb = new ProcessBuilder(
+                "sh", "-c", "find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /snap -prune -o -path /run -prune -o -type f -print");
+        pb.redirectError(ProcessBuilder.Redirect.to(new File("/dev/null")));
         Process process = pb.start();
-        LineParser lineParser = new LineParser(process.getInputStream(), fileList);
-        Executors.newSingleThreadExecutor().submit(lineParser);
+
+        StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), fileList::add);
+        Executors.newSingleThreadExecutor().submit(streamGobbler);
         int exit = process.waitFor();
     }
 
@@ -155,18 +159,18 @@ public class FileList {
         return true;
     }
 
-    private static class LineParser implements Runnable {
+    private static class StreamGobbler implements Runnable {
         private final InputStream inputStream;
-        private final ArrayList<String> fileList;
+        private final Consumer<String> consumer;
 
-        public LineParser(InputStream inputStream, ArrayList<String> f) {
-            this.inputStream = inputStream;
-            fileList = f;
+        public StreamGobbler(InputStream inStream, Consumer<String> consumer) {
+            this.inputStream = inStream;
+            this.consumer = consumer;
         }
 
         @Override
         public void run() {
-            new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(fileList::add);
+            new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
         }
     }
 }
