@@ -10,17 +10,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class FileList {
 
     private BufferedReader reader;
     private final DBController dbController = DBController.getInstance();
     private int startIndex;
-    private final ArrayList<String> prohibited;
 
     public FileList() throws Exception {
+
         try {
             FileReader fr = new FileReader("enumeration.dat");
             reader = new BufferedReader(fr);
@@ -32,8 +34,8 @@ public class FileList {
             System.out.println("Successfully found where we left off!");
 
         } catch (Exception e) {
-            dbController.updateStartIndex(0);
-            ArrayList<String> fileStringList = new ArrayList<>();
+            dbController.updateStartIndex(0); // if database is old but enum file is new, change starting index
+            ArrayList<String> filePathList = new ArrayList<>();
 
             /* DEBUGGING */
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
@@ -41,10 +43,12 @@ public class FileList {
             System.out.println("Enumeration began " + sdf.format(resultdate));
             /* END DEBUGGING */
 
-            enumFiles(fileStringList);
-            Collections.shuffle(fileStringList);
+            enumFiles(filePathList);
+
+            // SHUFFLE FILES
+            Collections.shuffle(filePathList);
             BufferedWriter bw = new BufferedWriter(new FileWriter("enumeration.dat", false));
-            for (String s : fileStringList) {
+            for (String s : filePathList) {
                 bw.write(s);
                 bw.newLine(); // maybe replace with + "\n" above
             }
@@ -58,55 +62,54 @@ public class FileList {
             FileReader fr = new FileReader("enumeration.dat");
             reader = new BufferedReader(fr);
         }
+    }
 
+    public void enumFiles(ArrayList<String> fileList) throws Exception {
         // fill prohibited with skip_list
-        prohibited = new ArrayList<>();
+        ArrayList<String> skiplist = new ArrayList<>();
         try {
             FileReader fr = new FileReader("skip_list.txt");
             BufferedReader br = new BufferedReader(fr);
             String line;
             while ((line = br.readLine()) != null) {
-                prohibited.add(line);
+                skiplist.add(line);
             }
-        } catch (IOException e) {
-            prohibited.add("/dev");
-            prohibited.add("/sys");
-            prohibited.add("/proc");
-            prohibited.add("/snap");
-            prohibited.add("/run");
+        } catch (IOException ioe) {
+            skiplist.add("/dev");
+            skiplist.add("/sys");
+            skiplist.add("/proc");
+            skiplist.add("/snap");
+            skiplist.add("/run");
         }
-    }
-
-    public void enumFiles(ArrayList<String> fileList) throws Exception {
         boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
         if (isWindows) {
-            enumerateWindows(fileList);
+            enumerateWindows(fileList, skiplist);
         }
         else
-            enumerateUnix(fileList);
+            enumerateUnix(fileList, skiplist);
     }
 
-    private void enumerateWindows(ArrayList<String> fileList) throws InterruptedException {
+    private void enumerateWindows(ArrayList<String> fileList, ArrayList<String> skiplist) throws InterruptedException {
         Process process;
         ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", "dir /b /s /a:-D");
         for (Path p : FileSystems.getDefault().getRootDirectories()) {
             try {
                 pb.directory(p.toFile());
                 process = pb.start();
-                StreamGobbler gobbler = new StreamGobbler(process.getInputStream(), fileList::add);
+                StreamGobbler gobbler = new StreamGobbler(process.getInputStream(), skiplist, fileList::add);
                 Executors.newSingleThreadExecutor().submit(gobbler);
                 int exit = process.waitFor();
             } catch (IOException ignored) {}
         }
     }
 
-    private void enumerateUnix(ArrayList<String> fileList) throws InterruptedException, IOException {
+    private void enumerateUnix(ArrayList<String> fileList, ArrayList<String> skiplist) throws InterruptedException, IOException {
         ProcessBuilder pb = new ProcessBuilder(
                 "sh", "-c", "find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /snap -prune -o -path /run -prune -o -type f -print");
         pb.redirectError(ProcessBuilder.Redirect.to(new File("/dev/null")));
         Process process = pb.start();
 
-        StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), fileList::add);
+        StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), skiplist, fileList::add);
         Executors.newSingleThreadExecutor().submit(streamGobbler);
         int exit = process.waitFor();
     }
@@ -123,12 +126,6 @@ public class FileList {
 
             try {
                 String path = reader.readLine();
-                // check if file is prohibited
-                for (String s : prohibited) {
-                    if (path.startsWith(s)) {
-                        throw new IOException("File is prohibited.");
-                    }
-                }
                 file = new File(path);
             } catch (IOException ignored) {
                 // file does not exist or cannot be opened
@@ -160,17 +157,32 @@ public class FileList {
     }
 
     private static class StreamGobbler implements Runnable {
+        /* I know little about functional programming, so I stole a lot of this from
+         * stackoverflow.com/questions/22845574/how-to-dynamically-do-filtering-in-java-8
+         */
         private final InputStream inputStream;
         private final Consumer<String> consumer;
+        private final Predicate<String> compositePredicate;
 
-        public StreamGobbler(InputStream inStream, Consumer<String> consumer) {
+        public StreamGobbler(InputStream inStream, ArrayList<String> skip, Consumer<String> consumer) {
             this.inputStream = inStream;
             this.consumer = consumer;
+
+            // create list of predicates that check if this pathname starts with any of the forbidden paths
+            ArrayList<Predicate<String>> allFilters = new ArrayList<>();
+            for (String s : skip) {
+                allFilters.add(e -> !e.startsWith(s));
+            }
+            // create one large predicate, which is a chain of ands between predicates in list
+            // if all predicates are true, then this path is NOT a descendent of a forbidden directory
+            // so the composite predicate will be true, meaning it will pass the filter test
+            compositePredicate = allFilters.stream().reduce(w -> true, Predicate::and);
         }
 
         @Override
         public void run() {
-            new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
+            new BufferedReader(new InputStreamReader(inputStream)).lines()
+                    .filter(compositePredicate).forEach(consumer);
         }
     }
 }
