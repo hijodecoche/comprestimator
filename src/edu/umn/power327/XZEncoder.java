@@ -40,8 +40,7 @@ public class XZEncoder {
 
     public int encode(byte[] input) throws Exception {
         los.write(input, 0, input.length);
-        los.finish();
-        System.out.println("Decoder memory: " + options.getEncoderMemoryUsage());
+        los.close();
         return nos.size();
     }
 

@@ -1,6 +1,7 @@
 package edu.umn.power327;
 
 import edu.umn.power327.database.DBController;
+import edu.umn.power327.files.*;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Exception;
 import net.jpountz.lz4.LZ4Factory;
@@ -12,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.zip.*;
 
@@ -31,12 +31,12 @@ public class CompressorManager {
     private XZEncoder xz9;
 
     private final CompressionResult result = new CompressionResult();
-    private ArrayList<File> fileList;
+    private FileList fileList;
     private byte[] input;
     private final byte[] output = new byte[1610612736]; // 1.5 GB
     private long start, stop;
     private final boolean list_files;
-    private final DBController dbController = new DBController();
+    private final DBController dbController = DBController.getInstance();
     private Robot robot; // will be instantiated if not headless env
 
     /**
@@ -70,7 +70,10 @@ public class CompressorManager {
             System.out.println("Check README if you need help.\n\t------------------------------");
         }
 
-        dbController.createTables();
+        if (dbController != null)
+            dbController.createTables();
+        else
+            throw new Exception("Could not get database instance!");
     }
 
     private void compressAndStoreAll() throws Exception {
@@ -109,10 +112,45 @@ public class CompressorManager {
         }
     }
 
+    public void singleFileTest(File file) {
+        FileTypeFetcher fetcher = new FileTypeFetcher();
+        try {
+            result.setType(fetcher.fetchType(file.toString()));
+        } catch (Exception ignored) {}
+        try {
+            input = Files.readAllBytes(file.toPath());
+            result.setOrigSize(input.length);
+            result.setHash(getHash(input));
+            result.setExt(getExt(file.getPath()));
+
+            doDeflate(deflater1);
+            result.printToConsole();
+
+            doDeflate(deflater6);
+            result.printToConsole();
+
+            doDeflate(deflater9);
+            result.printToConsole();
+
+            doLZ4(lz4);
+            result.printToConsole();
+
+            doLZ4(lz4hc);
+            result.printToConsole();
+
+            doLZMA(xz6);
+            result.printToConsole();
+
+            doLZMA(xz9);
+            result.printToConsole();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void beginLoop() throws Exception {
 
-        // using singleFileTest will be faster than multiple calls to fileList.size()
-        boolean singleFileTest = fileList.size() == 1;
         FileWriter fw = null;
 
         FileTypeFetcher fetcher = new FileTypeFetcher();
@@ -130,7 +168,8 @@ public class CompressorManager {
         }
 
         System.out.println("Beginning compression loop...");
-        for(File file : fileList) {
+        File file;
+        while((file = fileList.getNext()) != null) {
             try {
                 if (fw != null) {
                     fw.write(file.getPath() + "\n");
@@ -152,12 +191,7 @@ public class CompressorManager {
                 result.setExt(getExt(file.getPath()));
                 // check if we've seen this file before
                 if (dbController.contains(result.getHash(), result.getOrigSize())) {
-                    if (singleFileTest) {
-                        dbController.deleteFromAll(result.getHash(), result.getOrigSize());
-                    }
-                    else
-                        // we've seen this file and we're not doing a single file test
-                        continue;
+                    continue;
                 }
 
                 compressAndStoreAll();
@@ -190,11 +224,11 @@ public class CompressorManager {
         return hexString.toString();
     }
 
-    public static String getExt(String path) {
-        if(path.matches(".*\\.[A-Za-z0-9]+$")) {
-            int index = path.lastIndexOf('.');
-            if(index > 0 && path.charAt(index - 1) != '\\' && path.charAt(index - 1) != '/') {
-                return path.substring(path.lastIndexOf(".") + 1);
+    public static String getExt(String pathname) {
+        if(pathname.matches(".*\\.[A-Za-z0-9]+$")) {
+            int index = pathname.lastIndexOf('.');
+            if(index > 0 && pathname.charAt(index - 1) != '\\' && pathname.charAt(index - 1) != '/') {
+                return pathname.substring(pathname.lastIndexOf(".") + 1);
             }
         }
         return "";
@@ -215,7 +249,7 @@ public class CompressorManager {
 
             // COMPRESS RANDOM VECTOR
             System.out.println("Compressing random test vector...");
-            Random random = new Random(65536); // hardcoded seed makes RNG generate identical test vectors
+            Random random = new Random(65536); // hardcoded seed makes RNG generate same data
             random.nextBytes(input);
             result.setHash("1"); // Ext and OrigSize already set
 
@@ -225,7 +259,7 @@ public class CompressorManager {
         }
     }
 
-    public void setFileList(ArrayList<File> fileList) {
+    public void setFileList(FileList fileList) {
         // assumes fileList is already shuffled
         this.fileList = fileList;
     }

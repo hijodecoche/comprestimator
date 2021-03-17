@@ -5,13 +5,14 @@ import edu.umn.power327.CompressionResult;
 import java.sql.*;
 
 /**
- * Interacts with local SQLite DB VERSION 100
+ * Interacts with local SQLite DB VERSION 103
  * Will hold file sha256 hash, file extension, compress time in microseconds,
  * orig and compressed file sizes in bytes, results of `file` command.
  */
 public class DBController {
 
-    private final Connection con;
+    private static final DBController dbInstance;
+    private Connection con = null;
 
     // Table names
     public static String DEFLATE1 = "deflate1_results";
@@ -23,10 +24,21 @@ public class DBController {
     public static String XZ9 = "xz9_results";
 
     // TODO: Always change version id when altering this file
-    public static int VERSION = 101;
+    // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
+    public static int VERSION = 104;
 
-    public DBController() throws SQLException {
-        con = DriverManager.getConnection("jdbc:sqlite:test.db");
+    private DBController() {
+        try {
+            con = DriverManager.getConnection("jdbc:sqlite:test.db");
+        } catch (SQLException ignored) { }
+    }
+
+    static {
+        dbInstance = new DBController();
+    }
+
+    public static DBController getInstance() {
+        return dbInstance;
     }
 
     /**
@@ -40,9 +52,11 @@ public class DBController {
                 + "compress_time INT NOT NULL,\n"
                 + "file_type VARCHAR(32),\n"
                 + "PRIMARY KEY(hash, orig_size));";
-        try {
-            Statement stmt = con.createStatement();
 
+        try (Statement stmt = con.createStatement()) {
+            // check if DB has incompatible version
+            if ((getDBVersion() / 100) > (VERSION / 100))
+                throw new SQLException("Incompatible database version.");
             // set version id
             stmt.execute("PRAGMA application_id=" + VERSION + ";");
 
@@ -53,6 +67,7 @@ public class DBController {
             stmt.execute("CREATE TABLE IF NOT EXISTS " + LZ4HC + "(\n" + defaultSchema);
             stmt.execute("CREATE TABLE IF NOT EXISTS " + XZ6 + "(\n" + defaultSchema);
             stmt.execute("CREATE TABLE IF NOT EXISTS " + XZ9 + "(\n" + defaultSchema);
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -69,10 +84,12 @@ public class DBController {
      */
     public void insertResult(String table, String hash, String file_ext, int origSize,
                              int compressSize, long compressTime, String type) throws SQLException {
-        Statement s = con.createStatement();
-        s.execute("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
-                + "compress_size, compress_time, file_type) VALUES('" + hash + "', '" + file_ext + "', "
-                + origSize + ", " + compressSize + ", " + compressTime + ", '" + type + "');");
+        try (Statement s = con.createStatement()) {
+            s.execute("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
+                    + "compress_size, compress_time, file_type) VALUES('" + hash + "', '" + file_ext + "', "
+                    + origSize + ", " + compressSize + ", " + compressTime + ", '" + type + "');");
+        }
+
     }
 
     /**
@@ -92,14 +109,17 @@ public class DBController {
      * @param hash hash value of file
      * @param origSize original size of file
      * @return true if database contains results from this file, else false
-     * @throws SQLException if given table name that does not exist
      */
-    public boolean contains(String table, String hash, long origSize) throws SQLException {
+    public boolean contains(String table, String hash, long origSize) {
 
-        Statement s = con.createStatement();
-        s.execute("SELECT hash, orig_size FROM " + table + " WHERE hash='" + hash
-                + "' AND orig_size=" + origSize);
-        return s.getResultSet().next();
+        boolean contains = false;
+        try (Statement s = con.createStatement()) {
+            s.execute("SELECT hash, orig_size FROM " + table + " WHERE hash='" + hash
+                    + "' AND orig_size=" + origSize);
+            contains = s.getResultSet().next();
+        } catch (SQLException ignored) {}
+
+        return contains;
     }
 
     /**
@@ -113,11 +133,9 @@ public class DBController {
         String[] tables = {DEFLATE1, DEFLATE6, DEFLATE9, LZ4, LZ4HC, XZ6, XZ9};
         boolean inAllTables = true;
         for (String table : tables) {
-            try {
-                if (!contains(table, hash, origSize)) {
-                    inAllTables = false;
-                }
-            } catch (SQLException ignored) { } // some tables may not exist. continue.
+            if (!contains(table, hash, origSize)) {
+                inAllTables = false;
+            }
         }
 
         return inAllTables;
@@ -129,12 +147,12 @@ public class DBController {
      * @param table table containing entry to delete
      * @param hash hash of file
      * @param origSize original size of file
-     * @throws SQLException if table does not exist
      */
-    public void deleteResult(String table, String hash, long origSize) throws SQLException {
-        Statement s = con.createStatement();
-        s.execute("DELETE FROM " + table + " WHERE hash='" + hash
-                + "' AND orig_size=" + origSize);
+    public void deleteResult(String table, String hash, long origSize) {
+        try (Statement s = con.createStatement()) {
+            s.execute("DELETE FROM " + table + " WHERE hash='" + hash
+                    + "' AND orig_size=" + origSize);
+        } catch (SQLException ignored) {}
     }
 
     /**
@@ -146,9 +164,29 @@ public class DBController {
         String[] tables = {DEFLATE1, DEFLATE6, DEFLATE9, LZ4, LZ4HC, XZ6, XZ9};
 
         for(String table : tables) {
-            try {
-                deleteResult(table, hash, origSize);
-            } catch (SQLException ignored){ }
+            deleteResult(table, hash, origSize);
         }
+    }
+
+    public void updateStartIndex(int index) throws SQLException {
+        Statement s = con.createStatement();
+        s.execute("PRAGMA user_version = " + index + ";");
+        s.close();
+    }
+
+    public int getStartIndex() throws SQLException {
+        Statement s = con.createStatement();
+        ResultSet rs = s.executeQuery("SELECT * from pragma_user_version;");
+        int startIndex = rs.getInt(1);
+        s.close();
+        return startIndex;
+    }
+
+    private int getDBVersion() throws SQLException {
+        Statement s = con.createStatement();
+        ResultSet rs = s.executeQuery("SELECT * from pragma_application_id;");
+        int version = rs.getInt(1);
+        s.close();
+        return version;
     }
 }
