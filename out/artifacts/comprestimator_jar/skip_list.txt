@@ -3,4 +3,3 @@
 /sys
 /snap
 /run
-C:\Users\carso\IdeaProjects\comprestimator\out\artifacts\comprestimator_jar 

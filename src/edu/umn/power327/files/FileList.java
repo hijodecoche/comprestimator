@@ -135,9 +135,11 @@ public class FileList {
             }
         }
 
-        try {
-            dbController.updateStartIndex(startIndex);
-        } catch (SQLException ignored) {}
+        if (startIndex % 2 == 0) {
+            try {
+                dbController.updateStartIndex(startIndex);
+            } catch (SQLException ignored) { }
+        }
 
         return file;
     }

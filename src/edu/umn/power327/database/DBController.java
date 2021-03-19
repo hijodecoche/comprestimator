@@ -11,9 +11,6 @@ import java.sql.*;
  */
 public class DBController {
 
-    private static final DBController dbInstance;
-    private Connection con = null;
-
     // Table names
     public static String DEFLATE1 = "deflate1_results";
     public static String DEFLATE6 = "deflate6_results";
@@ -23,22 +20,57 @@ public class DBController {
     public static String XZ6 = "xz6_results";
     public static String XZ9 = "xz9_results";
 
+    private static DBController dbInstance;
+    private final Connection con;
+    private PreparedStatement xz9_contains;
+    private PreparedStatement deflate1_insert;
+    private PreparedStatement deflate6_insert;
+    private PreparedStatement deflate9_insert;
+    private PreparedStatement lz4_insert;
+    private PreparedStatement lz4hc_insert;
+    private PreparedStatement xz6_insert;
+    private PreparedStatement xz9_insert;
+
     // TODO: Always change version id when altering this file
     // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
-    public static int VERSION = 104;
+    public static int VERSION = 105;
 
-    private DBController() {
-        try {
-            con = DriverManager.getConnection("jdbc:sqlite:test.db");
-        } catch (SQLException ignored) { }
+    private DBController() throws SQLException {
+        con = DriverManager.getConnection("jdbc:sqlite:test.db");
+        createTables();
+        prepareStatements();
     }
 
     static {
-        dbInstance = new DBController();
+        try {
+            dbInstance = new DBController();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     public static DBController getInstance() {
         return dbInstance;
+    }
+
+    private void prepareStatements() throws SQLException {
+        deflate1_insert = con.prepareStatement("INSERT INTO " + DEFLATE1 +
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+        deflate6_insert = con.prepareStatement("INSERT INTO " + DEFLATE6 +
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+        deflate9_insert = con.prepareStatement("INSERT INTO " + DEFLATE9 +
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+        lz4_insert = con.prepareStatement("INSERT INTO " + LZ4 +
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+        lz4hc_insert = con.prepareStatement("INSERT INTO " + LZ4HC +
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+        xz6_insert = con.prepareStatement("INSERT INTO " + XZ6 +
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+        xz9_insert = con.prepareStatement("INSERT INTO " + XZ9 +
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+
+        xz9_contains = con.prepareStatement("SELECT hash, orig_size FROM " + XZ9
+                + " WHERE hash=? AND orig_size=?;");
     }
 
     /**
@@ -74,71 +106,61 @@ public class DBController {
     }
 
     /**
-     * @param table name of compressor used + "_results"
-     * @param hash 16-byte SHA256 hash of file
-     * @param file_ext file's extension
-     * @param origSize original size in kb
-     * @param compressSize compressed size in kb
-     * @param compressTime time it took to compress file, in milliseconds
-     * @throws SQLException if table does not exist
-     */
-    public void insertResult(String table, String hash, String file_ext, int origSize,
-                             int compressSize, long compressTime, String type) throws SQLException {
-        try (Statement s = con.createStatement()) {
-            s.execute("INSERT OR IGNORE INTO " + table + " (hash, file_ext, orig_size, "
-                    + "compress_size, compress_time, file_type) VALUES('" + hash + "', '" + file_ext + "', "
-                    + origSize + ", " + compressSize + ", " + compressTime + ", '" + type + "');");
-        }
-
-    }
-
-    /**
-     * Convenience method for abstracting the compression result.
-     * @param table table to store the result.
+     * General insert method to be used by individualized insert methods.
+     * @param ps the PreparedStatement for the desired table.
      * @param result CompressionResult object with necessary values.
      * @throws SQLException if table does not exist
      */
-    public void insertResult(String table, CompressionResult result) throws SQLException {
-        insertResult(table, result.getHash(), result.getExt(), result.getOrigSize(),
-                result.getCompressSize(), result.getCompressTime(), result.getType());
+    public void insertResult(PreparedStatement ps, CompressionResult result) throws SQLException {
+        ps.setString(1, result.getHash());
+        ps.setString(2, result.getExt());
+        ps.setInt(3, result.getOrigSize());
+        ps.setInt(4, result.getCompressSize());
+        ps.setLong(5, result.getCompressTime());
+        ps.setString(6, result.getType());
+        ps.executeUpdate();
+    }
+
+    public void insertDeflate1 (CompressionResult result) throws SQLException {
+        insertResult(deflate1_insert, result);
+    }
+    public void insertDeflate6 (CompressionResult result) throws SQLException {
+        insertResult(deflate6_insert, result);
+    }
+    public void insertDeflate9 (CompressionResult result) throws SQLException {
+        insertResult(deflate9_insert, result);
+    }
+    public void insertLZ4 (CompressionResult result) throws SQLException {
+        insertResult(lz4_insert, result);
+    }
+    public void insertLZ4HC (CompressionResult result) throws SQLException {
+        insertResult(lz4hc_insert, result);
+    }
+    public void insertXZ6 (CompressionResult result) throws SQLException {
+        insertResult(xz6_insert, result);
+    }
+    public void insertXZ9(CompressionResult result) throws SQLException {
+        insertResult(xz9_insert, result);
     }
 
     /**
-     * Checks if a file has already been compressed using specified compression algorithm.
-     * @param table name of table to check
-     * @param hash hash value of file
-     * @param origSize original size of file
-     * @return true if database contains results from this file, else false
-     */
-    public boolean contains(String table, String hash, long origSize) {
-
-        boolean contains = false;
-        try (Statement s = con.createStatement()) {
-            s.execute("SELECT hash, orig_size FROM " + table + " WHERE hash='" + hash
-                    + "' AND orig_size=" + origSize);
-            contains = s.getResultSet().next();
-        } catch (SQLException ignored) {}
-
-        return contains;
-    }
-
-    /**
-     * Convenience method.  We'll generally use this in case we start changing table names, in which case
-     * we don't need to go searching for calls to above function.
+     * If exists in xz9_results, entry is guaranteed to exist in all other tables.
+     * If it does not exist in xz9_results, it may still exist in previous tables,
+     * but attempting to re-insert is safe.
      * @param hash hash value of file
      * @param origSize original size of file
      * @return true if database contains results from this file in all tables, else false
      */
     public boolean contains(String hash, long origSize) {
-        String[] tables = {DEFLATE1, DEFLATE6, DEFLATE9, LZ4, LZ4HC, XZ6, XZ9};
-        boolean inAllTables = true;
-        for (String table : tables) {
-            if (!contains(table, hash, origSize)) {
-                inAllTables = false;
+        boolean exists = false;
+        try {
+            xz9_contains.setString(1, hash);
+            xz9_contains.setLong(2, origSize);
+            try (ResultSet rs = xz9_contains.executeQuery()) {
+                exists = rs.next();
             }
-        }
-
-        return inAllTables;
+        } catch (SQLException ignored) { }
+        return exists;
     }
 
     /**
@@ -174,19 +196,23 @@ public class DBController {
         s.close();
     }
 
-    public int getStartIndex() throws SQLException {
-        Statement s = con.createStatement();
-        ResultSet rs = s.executeQuery("SELECT * from pragma_user_version;");
-        int startIndex = rs.getInt(1);
-        s.close();
+    public int getStartIndex() {
+        int startIndex = 0;
+        try (Statement s = con.createStatement()) {
+            ResultSet rs = s.executeQuery("SELECT * from pragma_user_version;");
+            startIndex = rs.getInt(1);
+        } catch (SQLException ignored) {}
         return startIndex;
     }
 
-    private int getDBVersion() throws SQLException {
-        Statement s = con.createStatement();
-        ResultSet rs = s.executeQuery("SELECT * from pragma_application_id;");
-        int version = rs.getInt(1);
-        s.close();
-        return version;
+    private int getDBVersion() {
+        try (Statement s = con.createStatement()) {
+            ResultSet rs = s.executeQuery("SELECT * from pragma_application_id;");
+            return rs.getInt(1);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return Integer.MAX_VALUE; // convinces DB that this version is incompatible
     }
 }

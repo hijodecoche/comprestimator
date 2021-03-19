@@ -14,7 +14,6 @@ public class XZEncoder {
     private final NullOutputStream nos;
     private XZOutputStream los;
     private final LZMA2Options options = new LZMA2Options();
-    private final BasicArrayCache bac;
 
     /**
      * Create a new XZ compressor at specified level.
@@ -25,13 +24,12 @@ public class XZEncoder {
     public XZEncoder(int level) throws Exception {
 
         nos = new NullOutputStream();
-        bac = new BasicArrayCache();
 
         if (level >= 0 && level < 10) {
             options.setPreset(level);
         }
 
-        los = new XZOutputStream(nos, options, XZ.CHECK_NONE, bac); // skip integrity check
+        los = new XZOutputStream(nos, options, XZ.CHECK_NONE); // skip integrity check
     }
 
     public XZEncoder() throws Exception {
@@ -45,7 +43,7 @@ public class XZEncoder {
     }
 
     public void reset() throws IOException {
-        los = new XZOutputStream(nos, options, XZ.CHECK_NONE, bac);
+        los = new XZOutputStream(nos, options, XZ.CHECK_NONE);
         nos.resetByteCount();
     }
 }

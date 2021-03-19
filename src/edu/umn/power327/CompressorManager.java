@@ -24,11 +24,13 @@ import java.util.zip.*;
 public class CompressorManager {
 
     // compressors
-    private Deflater deflater1, deflater6, deflater9;
-    private LZ4Compressor lz4;
-    private LZ4Compressor lz4hc;
-    private XZEncoder xz6;
-    private XZEncoder xz9;
+    private final Deflater deflater1;
+    private final Deflater deflater6;
+    private final Deflater deflater9;
+    private final LZ4Compressor lz4;
+    private final LZ4Compressor lz4hc;
+    private final XZEncoder xz6;
+    private final XZEncoder xz9;
 
     private final CompressionResult result = new CompressionResult();
     private FileList fileList;
@@ -39,28 +41,16 @@ public class CompressorManager {
     private final DBController dbController = DBController.getInstance();
     private Robot robot; // will be instantiated if not headless env
 
-    /**
-     * Convenience method, used if we want to use all compression algorithms regardless of user input.
-     * @throws Exception from LZMAEncoder, Robot, DBController, etc.
-     */
-    public CompressorManager() throws Exception {
-        this(true, true, true, true, true, true,
-                false);
-    }
-
-    public CompressorManager(boolean useDeflate1, boolean useDeflate6, boolean useDeflate9, boolean useLZ4,
-                             boolean useLZ4HC, boolean useLZMA, boolean list_files) throws Exception {
+    public CompressorManager(boolean list_files) throws Exception {
         this.list_files = list_files;
-        if (useDeflate1) deflater1 = new Deflater(1);
-        if (useDeflate6) deflater6 = new Deflater();
-        if (useDeflate9) deflater9 = new Deflater(9);
+        deflater1 = new Deflater(1);
+        deflater6 = new Deflater();
+        deflater9 = new Deflater(9);
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
-        if (useLZ4) lz4 = lz4Factory.fastCompressor();
-        if (useLZ4HC) lz4hc = lz4Factory.highCompressor();
-        if (useLZMA) {
-            xz6 = new XZEncoder();
-            xz9 = new XZEncoder(9);
-        }
+        lz4 = lz4Factory.fastCompressor();
+        lz4hc = lz4Factory.highCompressor();
+        xz6 = new XZEncoder();
+        xz9 = new XZEncoder(9);
 
         if (!GraphicsEnvironment.isHeadless()) {
             robot = new Robot(); // hacky way to keep computer awake
@@ -81,13 +71,13 @@ public class CompressorManager {
         Point mousePoint; // never instantiated when in headless env
 
         doDeflate(deflater1);
-        dbController.insertResult(DBController.DEFLATE1, result);
+        dbController.insertDeflate1(result);
 
         doDeflate(deflater6);
-        dbController.insertResult(DBController.DEFLATE6, result);
+        dbController.insertDeflate6(result);
 
         doDeflate(deflater9);
-        dbController.insertResult(DBController.DEFLATE9, result);
+        dbController.insertDeflate9(result);
 
         if (robot != null) {
             mousePoint = MouseInfo.getPointerInfo().getLocation();
@@ -95,16 +85,16 @@ public class CompressorManager {
         }
 
         doLZ4(lz4);
-        dbController.insertResult(DBController.LZ4, result);
+        dbController.insertLZ4(result);
 
         doLZ4(lz4hc);
-        dbController.insertResult(DBController.LZ4HC, result);
+        dbController.insertLZ4HC(result);
 
         doLZMA(xz6);
-        dbController.insertResult(DBController.XZ6, result);
+        dbController.insertXZ6(result);
 
         doLZMA(xz9);
-        dbController.insertResult(DBController.XZ9, result);
+        dbController.insertXZ9(result);
 
         if (robot != null) {
             mousePoint = MouseInfo.getPointerInfo().getLocation();

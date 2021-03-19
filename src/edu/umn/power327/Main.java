@@ -13,13 +13,7 @@ public class Main {
         System.out.println("Welcome to comprestimator!");
         System.out.println("---------------- \\(^o^)/ ----------------");
 
-        // controls which algorithms to use (expect all)
-        boolean useDeflate1 = true, useDeflate6 = true, useDeflate9 = true, useLZ4 = true, useLZ4HC = true,
-                useLZMA = true, listFiles = false, useTestVector = true;
-
-        // SINGLE FILE TEST VARS
-        boolean singleFileTest = false; // flag for test
-
+        boolean listFiles = false, useTestVector = true, singleFileTest = false;
 
         // PARSE ARGUMENTS
         for(String arg : args) {
@@ -28,24 +22,6 @@ public class Main {
                 listFiles = true;
                 System.out.println("Comprestimator will print names of compressed files"
                 + "to input_log.txt");
-            } else if (arg.contains("no-deflate1")) {
-//                useDeflate1 = false;
-                System.out.println("Not using deflate1");
-            } else if (arg.contains("no-deflate6")) {
-//                useDeflate6 = false;
-                System.out.println("Not using deflate6");
-            } else if (arg.contains("no-deflate9")) {
-//                useDeflate9 = false;
-                System.out.println("Not using deflate9");
-            } else if (arg.contains("no-lz4")) {
-//                useLZ4 = false;
-                System.out.println("Not using LZ4");
-            } else if (arg.contains("no-lz4hc")) {
-//                useLZ4HC = false;
-                System.out.println("Not using LZ4HC");
-            } else if (arg.contains("no-lzma")) {
-//                useLZMA = false;
-                System.out.println("Not using LZMA");
             } else if (arg.contains("single-file")) {
                 singleFileTest = true;
                 useTestVector = false;
@@ -67,8 +43,7 @@ public class Main {
             Scanner scanner = new Scanner(System.in);
             System.out.println("Enter the path to some file: ");
             try {
-                cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4,
-                        useLZ4HC, useLZMA, listFiles);
+                cm = new CompressorManager(listFiles);
                 cm.singleFileTest(new File(scanner.nextLine()));
             } catch (InvalidPathException e) {
                 System.out.println("Bad path. Exiting.");
@@ -83,8 +58,7 @@ public class Main {
 
 
         // CREATE COMPRESSION MANAGER
-        cm = new CompressorManager(useDeflate1, useDeflate6, useDeflate9, useLZ4,
-                useLZ4HC, useLZMA, listFiles);
+        cm = new CompressorManager(listFiles);
 
         cm.setFileList(fileList); // give compression manager the list
         if (useTestVector) {
@@ -101,11 +75,5 @@ public class Main {
         System.out.println("Comprestimator uses following compressors by default: deflate (levels 1, 6, 9), lz4, lz4hc, lzma");
         System.out.println("-list-files\t\twill store all file names in input_log.txt");
         System.out.println("-single-file\t\ttest only one file. Will prompt for path.");
-        System.out.println("-no-deflate1\t\tskips deflate level 1");
-        System.out.println("-no-deflate6\t\tskips deflate level 6");
-        System.out.println("-no-deflate9\t\tskips deflate level 9");
-        System.out.println("-no-lz4\t\tskips lz4");
-        System.out.println("-no-lz4hc\t\tskips lz4hc");
-        System.out.println("-no-lzma\t\tskips lzma");
     }
 }
