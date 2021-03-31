@@ -12,13 +12,13 @@ import java.sql.*;
 public class DBController {
 
     // Table names
-    public static String DEFLATE1 = "deflate1_results";
-    public static String DEFLATE6 = "deflate6_results";
-    public static String DEFLATE9 = "deflate9_results";
-    public static String LZ4 = "lz4_results";
-    public static String LZ4HC = "lz4hc_results";
-    public static String XZ6 = "xz6_results";
-    public static String XZ9 = "xz9_results";
+    public static final String DEFLATE1 = "deflate1_results";
+    public static final String DEFLATE6 = "deflate6_results";
+    public static final String DEFLATE9 = "deflate9_results";
+    public static final String LZ4 = "lz4_results";
+    public static final String LZ4HC = "lz4hc_results";
+    public static final String XZ6 = "xz6_results";
+    public static final String XZ9 = "xz9_results";
 
     private static DBController dbInstance;
     private final Connection con;
@@ -33,7 +33,7 @@ public class DBController {
 
     // TODO: Always change version id when altering this file
     // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
-    public static int VERSION = 106;
+    public static int VERSION = 107;
 
     private DBController() throws SQLException {
         con = DriverManager.getConnection("jdbc:sqlite:test.db");
@@ -54,19 +54,19 @@ public class DBController {
     }
 
     private void prepareStatements() throws SQLException {
-        deflate1_insert = con.prepareStatement("INSERT INTO " + DEFLATE1 +
+        deflate1_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE1 +
                 "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
-        deflate6_insert = con.prepareStatement("INSERT INTO " + DEFLATE6 +
+        deflate6_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE6 +
                 "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
-        deflate9_insert = con.prepareStatement("INSERT INTO " + DEFLATE9 +
+        deflate9_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE9 +
                 "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
-        lz4_insert = con.prepareStatement("INSERT INTO " + LZ4 +
+        lz4_insert = con.prepareStatement("INSERT OR IGNORE INTO " + LZ4 +
                 "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
-        lz4hc_insert = con.prepareStatement("INSERT INTO " + LZ4HC +
+        lz4hc_insert = con.prepareStatement("INSERT OR IGNORE INTO " + LZ4HC +
                 "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
-        xz6_insert = con.prepareStatement("INSERT INTO " + XZ6 +
+        xz6_insert = con.prepareStatement("INSERT OR IGNORE INTO " + XZ6 +
                 "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
-        xz9_insert = con.prepareStatement("INSERT INTO " + XZ9 +
+        xz9_insert = con.prepareStatement("INSERT OR IGNORE INTO " + XZ9 +
                 "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
 
         xz9_contains = con.prepareStatement("SELECT hash, orig_size FROM " + XZ9
@@ -191,9 +191,9 @@ public class DBController {
     }
 
     public void updateStartIndex(int index) throws SQLException {
-        Statement s = con.createStatement();
-        s.execute("PRAGMA user_version = " + index + ";");
-        s.close();
+        try (Statement s = con.createStatement()) {
+            s.execute("PRAGMA user_version = " + index + ";");
+        }
     }
 
     public int getStartIndex() {

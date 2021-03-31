@@ -60,9 +60,7 @@ public class CompressorManager {
             System.out.println("Check README if you need help.\n\t------------------------------");
         }
 
-        if (dbController != null)
-            dbController.createTables();
-        else
+        if (dbController == null)
             throw new Exception("Could not get database instance!");
     }
 
