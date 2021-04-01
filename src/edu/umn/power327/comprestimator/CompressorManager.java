@@ -64,18 +64,18 @@ public class CompressorManager {
             throw new Exception("Could not get database instance!");
     }
 
-    private void compressAndStoreAll() throws Exception {
+    private void compressAndStoreAll(String pathname) throws Exception {
 
         Point mousePoint; // never instantiated when in headless env
 
         doDeflate(deflater1);
-        dbController.insertDeflate1(result);
+        dbController.insertDeflate1(result, pathname);
 
         doDeflate(deflater6);
-        dbController.insertDeflate6(result);
+        dbController.insertDeflate6(result, pathname);
 
         doDeflate(deflater9);
-        dbController.insertDeflate9(result);
+        dbController.insertDeflate9(result, pathname);
 
         if (robot != null) {
             mousePoint = MouseInfo.getPointerInfo().getLocation();
@@ -83,16 +83,16 @@ public class CompressorManager {
         }
 
         doLZ4(lz4);
-        dbController.insertLZ4(result);
+        dbController.insertLZ4(result, pathname);
 
         doLZ4(lz4hc);
-        dbController.insertLZ4HC(result);
+        dbController.insertLZ4HC(result, pathname);
 
         doLZMA(xz6);
-        dbController.insertXZ6(result);
+        dbController.insertXZ6(result, pathname);
 
         doLZMA(xz9);
-        dbController.insertXZ9(result);
+        dbController.insertXZ9(result, pathname);
 
         if (robot != null) {
             mousePoint = MouseInfo.getPointerInfo().getLocation();
@@ -181,7 +181,7 @@ public class CompressorManager {
                     continue;
                 }
 
-                compressAndStoreAll();
+                compressAndStoreAll(file.getPath());
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -240,7 +240,7 @@ public class CompressorManager {
             result.setExt("");
             result.setOrigSize(1);
 
-            compressAndStoreAll();
+            compressAndStoreAll("zero");
 
             System.out.println("Done compressing zero vector.");
 
@@ -250,7 +250,7 @@ public class CompressorManager {
             random.nextBytes(input);
             result.setHash("1"); // Ext and OrigSize already set
 
-            compressAndStoreAll();
+            compressAndStoreAll("random");
 
             System.out.println("Done compressing random vector.");
         }
