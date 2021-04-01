@@ -33,10 +33,10 @@ public class DBController {
 
     // TODO: Always change version id when altering this file
     // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
-    public static int VERSION = 107;
+    public static int VERSION = -107;
 
     private DBController() throws SQLException {
-        con = DriverManager.getConnection("jdbc:sqlite:test.db");
+        con = DriverManager.getConnection("jdbc:sqlite:withPathname.db");
         createTables();
         prepareStatements();
     }
@@ -55,19 +55,19 @@ public class DBController {
 
     private void prepareStatements() throws SQLException {
         deflate1_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE1 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, path_name) VALUES (?, ?, ?, ?, ?, ?, ?);");
         deflate6_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE6 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, path_name) VALUES (?, ?, ?, ?, ?, ?, ?);");
         deflate9_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE9 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, path_name) VALUES (?, ?, ?, ?, ?, ?, ?);");
         lz4_insert = con.prepareStatement("INSERT OR IGNORE INTO " + LZ4 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, path_name) VALUES (?, ?, ?, ?, ?, ?, ?);");
         lz4hc_insert = con.prepareStatement("INSERT OR IGNORE INTO " + LZ4HC +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, path_name) VALUES (?, ?, ?, ?, ?, ?, ?);");
         xz6_insert = con.prepareStatement("INSERT OR IGNORE INTO " + XZ6 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, path_name) VALUES (?, ?, ?, ?, ?, ?, ?);");
         xz9_insert = con.prepareStatement("INSERT OR IGNORE INTO " + XZ9 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, path_name) VALUES (?, ?, ?, ?, ?, ?, ?);");
 
         xz9_contains = con.prepareStatement("SELECT hash, orig_size FROM " + XZ9
                 + " WHERE hash=? AND orig_size=?;");
@@ -83,6 +83,7 @@ public class DBController {
                 + "compress_size INT NOT NULL,\n"
                 + "compress_time INT NOT NULL,\n"
                 + "file_type VARCHAR(32),\n"
+                + "path_name VARCHAR(64), \n"
                 + "PRIMARY KEY(hash, orig_size));";
 
         try (Statement stmt = con.createStatement()) {
@@ -111,36 +112,37 @@ public class DBController {
      * @param result CompressionResult object with necessary values.
      * @throws SQLException if table does not exist
      */
-    public void insertResult(PreparedStatement ps, CompressionResult result) throws SQLException {
+    public void insertResult(PreparedStatement ps, CompressionResult result, String pathname) throws SQLException {
         ps.setString(1, result.getHash());
         ps.setString(2, result.getExt());
         ps.setInt(3, result.getOrigSize());
         ps.setInt(4, result.getCompressSize());
         ps.setLong(5, result.getCompressTime());
         ps.setString(6, result.getType());
+        ps.setString(7, pathname);
         ps.executeUpdate();
     }
 
-    public void insertDeflate1 (CompressionResult result) throws SQLException {
-        insertResult(deflate1_insert, result);
+    public void insertDeflate1 (CompressionResult result, String pathname) throws SQLException {
+        insertResult(deflate1_insert, result, pathname);
     }
-    public void insertDeflate6 (CompressionResult result) throws SQLException {
-        insertResult(deflate6_insert, result);
+    public void insertDeflate6 (CompressionResult result, String pathname) throws SQLException {
+        insertResult(deflate6_insert, result, pathname);
     }
-    public void insertDeflate9 (CompressionResult result) throws SQLException {
-        insertResult(deflate9_insert, result);
+    public void insertDeflate9 (CompressionResult result, String pathname) throws SQLException {
+        insertResult(deflate9_insert, result, pathname);
     }
-    public void insertLZ4 (CompressionResult result) throws SQLException {
-        insertResult(lz4_insert, result);
+    public void insertLZ4 (CompressionResult result, String pathname) throws SQLException {
+        insertResult(lz4_insert, result, pathname);
     }
-    public void insertLZ4HC (CompressionResult result) throws SQLException {
-        insertResult(lz4hc_insert, result);
+    public void insertLZ4HC (CompressionResult result, String pathname) throws SQLException {
+        insertResult(lz4hc_insert, result, pathname);
     }
-    public void insertXZ6 (CompressionResult result) throws SQLException {
-        insertResult(xz6_insert, result);
+    public void insertXZ6 (CompressionResult result, String pathname) throws SQLException {
+        insertResult(xz6_insert, result, pathname);
     }
-    public void insertXZ9(CompressionResult result) throws SQLException {
-        insertResult(xz9_insert, result);
+    public void insertXZ9(CompressionResult result, String pathname) throws SQLException {
+        insertResult(xz9_insert, result, pathname);
     }
 
     /**
