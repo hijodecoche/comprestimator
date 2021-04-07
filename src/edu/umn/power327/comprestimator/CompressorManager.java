@@ -107,9 +107,7 @@ public class CompressorManager {
         } catch (Exception ignored) {}
         try {
             input = Files.readAllBytes(file.toPath());
-            result.setOrigSize(input.length);
-            result.setHash(getHash(input));
-            result.setExt(getExt(file.getPath()));
+            getMetaData(file.getPath());
 
             doDeflate(deflater1);
             result.printToConsole();
@@ -140,10 +138,11 @@ public class CompressorManager {
     public void beginLoop() throws Exception {
 
         FileWriter fw = null;
-
         FileTypeFetcher fetcher = new FileTypeFetcher();
+
         try {
-            String s = fetcher.fetchType("comprestimator.jar");
+            // test fetcher
+            String dummy = fetcher.fetchType("comprestimator.jar");
         } catch (IOException e) {
             System.out.println("Will not use unix file command.");
             fetcher = null;
@@ -172,28 +171,22 @@ public class CompressorManager {
                 if (fetcher != null) {
                     result.setType(fetcher.fetchType(file.getPath()));
                 }
-                // turn file into byte[] and get metadata
-                input = Files.readAllBytes(file.toPath());
+
+                input = Files.readAllBytes(file.toPath()); // turn file into byte[] and get metadata
                 if (input.length == 0)
                     continue; // empty files are useless
-                Entropy.calcEntropyAndBC(input);
-                result.setOrigSize(input.length);
-                result.setHash(getHash(input));
-                result.setExt(getExt(file.getPath()));
-                result.setBytecount(Entropy.bytecount);
-                result.setBytecount2(Entropy.bytecount2);
-                result.setEntropy(Entropy.entropy);
-                // check if we've seen this file before
-                if (dbController.contains(result.getHash(), result.getOrigSize())) {
+                getMetaData(file.getPath());
+
+                if (dbController.contains(result.getHash(), result.getOrigSize())) { // check if file previously seen
                     continue;
                 }
 
                 compressAndStoreAll();
 
             } catch (SQLException e) {
+                e.printStackTrace();
                 // this almost certainly means the file command isn't working
                 // set it to null to skip future file attempts
-                e.printStackTrace();
                 fetcher = null;
             } catch (LZ4Exception e) {
                 // these are strange and rare, so we want to know what's going on
@@ -202,6 +195,16 @@ public class CompressorManager {
             } catch (OutOfMemoryError | IOException ignored) { }
 
         } // END COMPRESSION LOOP
+    }
+
+    private void getMetaData(String pathname) throws Exception {
+        Entropy.calcEntropyAndBC(input);
+        result.setOrigSize(input.length);
+        result.setHash(getHash(input));
+        result.setExt(getExt(pathname));
+        result.setBytecount(Entropy.bytecount);
+        result.setBytecount2(Entropy.bytecount2);
+        result.setEntropy(Entropy.entropy);
     }
 
     public static String getHash(byte[] input) throws Exception {

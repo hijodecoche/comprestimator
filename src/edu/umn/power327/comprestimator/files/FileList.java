@@ -91,6 +91,7 @@ public class FileList {
     private void enumerateWindows(ArrayList<String> fileList, ArrayList<String> skiplist) throws InterruptedException {
         Process process;
         ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", "dir /b /s /a:-D");
+        pb.redirectErrorStream(true); // redirects to stdout...only thing that has worked thus far
         for (Path p : FileSystems.getDefault().getRootDirectories()) {
             try {
                 pb.directory(p.toFile());
@@ -104,7 +105,7 @@ public class FileList {
 
     private void enumerateUnix(ArrayList<String> fileList, ArrayList<String> skiplist) throws InterruptedException, IOException {
         ProcessBuilder pb = new ProcessBuilder(
-                "sh", "-c", "find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /snap -prune -o -path /run -prune -o -type f -print");
+                "sh", "-c", "find / -mount -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /snap -prune -o -path /run -prune -o -type f -print");
         pb.redirectError(ProcessBuilder.Redirect.to(new File("/dev/null")));
         Process process = pb.start();
 

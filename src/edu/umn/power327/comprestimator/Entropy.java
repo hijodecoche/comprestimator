@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class Entropy {
     static int[] freqCount = new int[256]; // since our max file size is less than Integer.MAX_VALUE, int is safe
-    public static int entropy;
+    public static double entropy;
     public static int bytecount; // for bytes where count > n (OG bytecount)
     public static int bytecount2; // for bytes where count >=n
 
@@ -13,7 +13,7 @@ public class Entropy {
         int n = bytes.length / 256; // threshold for bytecount
 
         for (byte b : bytes) {
-            freqCount[b]++; // no byte value should correspond to a negative integer
+            freqCount[(int) b & 0xFF]++;
         }
 
         double prob;
@@ -26,9 +26,10 @@ public class Entropy {
                 bytecount2++;
             if (i > n)
                 bytecount++;
-            prob = (double) i / bytes.length; // P(x_i)
-            entropy += prob * Math.log(prob) / Math.log(2); // P(x_i) * log2(P(x_i))
+            if (i != 0) {
+                prob = ((double) i) / bytes.length; // P(x_i)
+                entropy -= prob * (Math.log10(prob) / Math.log10(2.0)); // P(x_i) * log2(P(x_i))
+            }
         }
-        entropy *= -1;
     }
 }
