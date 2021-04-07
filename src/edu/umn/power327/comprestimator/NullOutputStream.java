@@ -1,4 +1,4 @@
-package edu.umn.power327;
+package edu.umn.power327.comprestimator;
 
 import java.io.OutputStream;
 

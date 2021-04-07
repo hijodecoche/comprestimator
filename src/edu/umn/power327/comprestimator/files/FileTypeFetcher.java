@@ -1,4 +1,4 @@
-package edu.umn.power327.files;
+package edu.umn.power327.comprestimator.files;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,7 +19,7 @@ public class FileTypeFetcher {
 
     public String fetchType(String filename) throws IOException {
         commandString.remove(2);
-        commandString.add("file -b " + "\"" + filename.replace("\"", "\\\"") + "\"");
+        commandString.add("file -b " + "\"" + filename.replace("\"", "\\\"").replace("`", "\\`") + "\"");
         Process process = pb.start();
         String result;
         try {

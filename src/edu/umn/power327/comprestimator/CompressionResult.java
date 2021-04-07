@@ -1,6 +1,20 @@
-package edu.umn.power327;
+package edu.umn.power327.comprestimator;
 
 public class CompressionResult {
+
+
+    private String hash;
+    private String ext;
+    private String type = "";
+    /* Storing compressTime as long allows for the long times that lzma uses to be represented
+     * without some kind of flag value.  SQLite can handle up to 64-bit integers to be store in INT
+     */
+    private long compressTime;
+    private int origSize;
+    private int compressSize;
+    private int bytecount;
+    private int bytecount2;
+    private double entropy;
 
     public String getHash() {
         return hash;
@@ -55,6 +69,29 @@ public class CompressionResult {
         this.type = type;
     }
 
+    public int getBytecount() {
+        return bytecount;
+    }
+
+    public void setBytecount(int bytecount) {
+        this.bytecount = bytecount;
+    }
+
+    public int getBytecount2() {
+        return bytecount2;
+    }
+
+    public void setBytecount2(int bytecount2) {
+        this.bytecount2 = bytecount2;
+    }
+
+    public double getEntropy() {
+        return entropy;
+    }
+
+    public void setEntropy(double entropy) {
+        this.entropy = entropy;
+    }
     /**
      * Used for debugging or when bypassing database.
      */
@@ -65,15 +102,8 @@ public class CompressionResult {
         System.out.println("compress_time: " + this.compressTime);
         System.out.println("Extension: " + this.ext);
         System.out.println("Type: " + this.type);
+        System.out.println("Bytecount: " + this.bytecount);
+        System.out.println("Bytecount2: " + this.bytecount2);
+        System.out.println("Shannon Entropy: " + this.entropy);
     }
-
-    private String hash;
-    private String ext;
-    private String type = "";
-    /* Storing compressTime as long allows for the long times that lzma uses to be represented
-     * without some kind of flag value.  SQLite can handle up to 64-bit integers to be store in INT
-     */
-    private long compressTime;
-    private int origSize;
-    private int compressSize;
 }

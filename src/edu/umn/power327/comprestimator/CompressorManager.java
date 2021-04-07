@@ -1,7 +1,7 @@
-package edu.umn.power327;
+package edu.umn.power327.comprestimator;
 
-import edu.umn.power327.database.DBController;
-import edu.umn.power327.files.*;
+import edu.umn.power327.comprestimator.database.DBController;
+import edu.umn.power327.comprestimator.files.*;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Exception;
 import net.jpountz.lz4.LZ4Factory;
@@ -174,9 +174,15 @@ public class CompressorManager {
                 }
                 // turn file into byte[] and get metadata
                 input = Files.readAllBytes(file.toPath());
+                if (input.length == 0)
+                    continue; // empty files are useless
+                Entropy.calcEntropyAndBC(input);
                 result.setOrigSize(input.length);
                 result.setHash(getHash(input));
                 result.setExt(getExt(file.getPath()));
+                result.setBytecount(Entropy.bytecount);
+                result.setBytecount2(Entropy.bytecount2);
+                result.setEntropy(Entropy.entropy);
                 // check if we've seen this file before
                 if (dbController.contains(result.getHash(), result.getOrigSize())) {
                     continue;

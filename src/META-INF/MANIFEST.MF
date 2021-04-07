@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: edu.umn.power327.Main
+Main-Class: edu.umn.power327.comprestimator.Main
 

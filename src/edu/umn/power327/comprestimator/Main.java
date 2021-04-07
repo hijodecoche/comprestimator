@@ -1,6 +1,6 @@
-package edu.umn.power327;
+package edu.umn.power327.comprestimator;
 
-import edu.umn.power327.files.FileList;
+import edu.umn.power327.comprestimator.files.FileList;
 
 import java.io.File;
 import java.nio.file.*;

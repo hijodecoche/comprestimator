@@ -1,6 +1,6 @@
-package edu.umn.power327.database;
+package edu.umn.power327.comprestimator.database;
 
-import edu.umn.power327.CompressionResult;
+import edu.umn.power327.comprestimator.CompressionResult;
 
 import java.sql.*;
 
@@ -33,7 +33,7 @@ public class DBController {
 
     // TODO: Always change version id when altering this file
     // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
-    public static int VERSION = 107;
+    public static int VERSION = 200;
 
     private DBController() throws SQLException {
         con = DriverManager.getConnection("jdbc:sqlite:test.db");
@@ -76,21 +76,27 @@ public class DBController {
     /**
      * Creates tables for storing results.
      */
-    public void createTables() {
+    public void createTables() throws SQLException {
         String defaultSchema = "hash CHAR(64) NOT NULL,\n"
                 + "file_ext VARCHAR(8) NOT NULL,\n"
                 + "orig_size INT NOT NULL,\n"
                 + "compress_size INT NOT NULL,\n"
                 + "compress_time INT NOT NULL,\n"
                 + "file_type VARCHAR(32),\n"
+                + "bytecount INT NOT NULL,\n"
+                + "bytecount2 INT NOT NULL,\n"
+                + "entropy DOUBLE NOT NULL,\n"
                 + "PRIMARY KEY(hash, orig_size));";
 
         try (Statement stmt = con.createStatement()) {
+            if (getDBVersion() == 0) {
+                stmt.execute("PRAGMA application_id=" + VERSION + ";");
+            }
             // check if DB has incompatible version
-            if ((getDBVersion() / 100) > (VERSION / 100))
+            else if ((getDBVersion() / 100) != (VERSION / 100))
                 throw new SQLException("Incompatible database version.");
             // set version id
-            stmt.execute("PRAGMA application_id=" + VERSION + ";");
+
 
             stmt.execute("CREATE TABLE IF NOT EXISTS " + DEFLATE1 + "(\n" + defaultSchema);
             stmt.execute("CREATE TABLE IF NOT EXISTS " + DEFLATE6 + "(\n" + defaultSchema);
@@ -100,8 +106,6 @@ public class DBController {
             stmt.execute("CREATE TABLE IF NOT EXISTS " + XZ6 + "(\n" + defaultSchema);
             stmt.execute("CREATE TABLE IF NOT EXISTS " + XZ9 + "(\n" + defaultSchema);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
