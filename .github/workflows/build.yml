@@ -1,0 +1,17 @@
+name: Build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install ant openjdk-11-jdk
+      - uses: actions/checkout@v2
+      - run: echo "jdk.home=/usr/lib/jvm/java-11-openjdk-amd64" > build.properties
+      - run: JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 ant
+      - uses: actions/upload-artifact@v2
+        with:
+          name: comprestimator.jar
+          path: out/artifacts/comprestimator_jar/comprestimator.jar
