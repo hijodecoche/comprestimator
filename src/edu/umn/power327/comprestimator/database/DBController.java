@@ -33,7 +33,7 @@ public class DBController {
 
     // TODO: Always change version id when altering this file
     // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
-    public static int VERSION = 200;
+    public static int VERSION = 201;
 
     private DBController() throws SQLException {
         con = DriverManager.getConnection("jdbc:sqlite:test.db");
@@ -55,19 +55,19 @@ public class DBController {
 
     private void prepareStatements() throws SQLException {
         deflate1_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE1 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, bytecount, bytecount2, entropy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
         deflate6_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE6 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, bytecount, bytecount2, entropy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
         deflate9_insert = con.prepareStatement("INSERT OR IGNORE INTO " + DEFLATE9 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, bytecount, bytecount2, entropy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
         lz4_insert = con.prepareStatement("INSERT OR IGNORE INTO " + LZ4 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, bytecount, bytecount2, entropy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
         lz4hc_insert = con.prepareStatement("INSERT OR IGNORE INTO " + LZ4HC +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, bytecount, bytecount2, entropy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
         xz6_insert = con.prepareStatement("INSERT OR IGNORE INTO " + XZ6 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, bytecount, bytecount2, entropy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
         xz9_insert = con.prepareStatement("INSERT OR IGNORE INTO " + XZ9 +
-                "(hash, file_ext, orig_size, compress_size, compress_time, file_type) VALUES (?, ?, ?, ?, ?, ?);");
+                "(hash, file_ext, orig_size, compress_size, compress_time, file_type, bytecount, bytecount2, entropy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
         xz9_contains = con.prepareStatement("SELECT hash, orig_size FROM " + XZ9
                 + " WHERE hash=? AND orig_size=?;");
@@ -122,6 +122,9 @@ public class DBController {
         ps.setInt(4, result.getCompressSize());
         ps.setLong(5, result.getCompressTime());
         ps.setString(6, result.getType());
+        ps.setInt(7, result.getBytecount());
+        ps.setInt(8, result.getBytecount2());
+        ps.setDouble(9, result.getEntropy());
         ps.executeUpdate();
     }
 

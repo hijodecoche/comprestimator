@@ -27,7 +27,7 @@ public class FileList {
             reader = new BufferedReader(fr);
             System.out.println("Loading previous enumeration...");
             startIndex = dbController.getStartIndex();
-            if (startIndex < 0 || !findPlace()) {
+            if (startIndex < 0 || !findCheckpoint()) {
                 throw new Exception("Could not seek to specified line");
             }
             System.out.println("Successfully found where we left off!");
@@ -36,11 +36,9 @@ public class FileList {
             dbController.updateStartIndex(0); // if database is old but enum file is new, change starting index
             ArrayList<String> filePathList = new ArrayList<>();
 
-            /* DEBUGGING */
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
             Date resultdate = new Date(System.currentTimeMillis());
             System.out.println("Enumeration began " + sdf.format(resultdate));
-            /* END DEBUGGING */
 
             enumFiles(filePathList);
 
@@ -49,14 +47,13 @@ public class FileList {
             BufferedWriter bw = new BufferedWriter(new FileWriter("enumeration.dat", false));
             for (String s : filePathList) {
                 bw.write(s);
-                bw.newLine(); // maybe replace with + "\n" above
+                bw.newLine();
             }
             bw.close();
 
-            /* DEBUGGING */
+            // notify user
             resultdate = new Date(System.currentTimeMillis());
             System.out.println("Enumeration completed " + sdf.format(resultdate));
-            /* END DEBUGGING */
 
             FileReader fr = new FileReader("enumeration.dat");
             reader = new BufferedReader(fr);
@@ -94,6 +91,8 @@ public class FileList {
         pb.redirectErrorStream(true); // redirects to stdout...only thing that has worked thus far
         for (Path p : FileSystems.getDefault().getRootDirectories()) {
             try {
+                if (p.toString().startsWith("\\\\") || p.toString().startsWith("//")) // exclude network drives
+                    continue;
                 pb.directory(p.toFile());
                 process = pb.start();
                 StreamGobbler gobbler = new StreamGobbler(process.getInputStream(), skiplist, fileList::add);
@@ -104,8 +103,12 @@ public class FileList {
     }
 
     private void enumerateUnix(ArrayList<String> fileList, ArrayList<String> skiplist) throws InterruptedException, IOException {
-        ProcessBuilder pb = new ProcessBuilder(
-                "sh", "-c", "find / -mount -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /snap -prune -o -path /run -prune -o -type f -print");
+        StringBuilder commandString = new StringBuilder("find / -fstype nfs -prune -o ");
+        for (String s : skiplist) {
+            commandString.append("-path ").append(s).append(" -prune -o ");
+        }
+        commandString.append("-type f -print");
+        ProcessBuilder pb = new ProcessBuilder("sh", "-c", commandString.toString());
         pb.redirectError(ProcessBuilder.Redirect.to(new File("/dev/null")));
         Process process = pb.start();
 
@@ -144,8 +147,11 @@ public class FileList {
         return file;
     }
 
-    private boolean findPlace() {
-        // get startIndex-many lines until we reach proper spot
+    /**
+     * Uses info in the DB header to find index where we left off in the enumeration file.
+     * @return True if successfully found the checkpoint.
+     */
+    private boolean findCheckpoint() {
         long counter = 0;
         while (counter < startIndex) {
             try {
