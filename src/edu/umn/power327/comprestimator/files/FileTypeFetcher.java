@@ -19,7 +19,8 @@ public class FileTypeFetcher {
 
     public String fetchType(String filename) throws IOException {
         commandString.remove(2);
-        commandString.add("file -b " + "\"" + filename.replace("\"", "\\\"").replace("`", "\\`") + "\"");
+        commandString.add("file -b " + "\"" + filename.replace("\"", "\\\"")
+                .replace("`", "\\`").replace("\\", "\\\\") + "\"");
         Process process = pb.start();
         String result;
         try {
