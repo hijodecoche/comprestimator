@@ -18,19 +18,17 @@ import java.util.zip.*;
 
 /**
  * Encapsulates all compressors and their uses.
- * TODO: Utilize the partial compressor list; currently the only way to run compressors is to use all, not some.
- * TODO: Remove e.printStackTrace() before sending to other people!
  */
 public class CompressorManager {
 
     // compressors
-    private final Deflater deflater1;
-    private final Deflater deflater6;
-    private final Deflater deflater9;
+    private final Deflater deflater1 = new Deflater(1);
+    private final Deflater deflater6 = new Deflater(6);
+    private final Deflater deflater9 = new Deflater(9);
     private final LZ4Compressor lz4;
     private final LZ4Compressor lz4hc;
-    private final XZEncoder xz6;
-    private final XZEncoder xz9;
+    private final XZEncoder xz6 = new XZEncoder();
+    private final XZEncoder xz9 = new XZEncoder(9);
 
     private final CompressionResult result = new CompressionResult();
     private FileList fileList;
@@ -43,14 +41,9 @@ public class CompressorManager {
 
     public CompressorManager(boolean list_files) throws Exception {
         this.list_files = list_files;
-        deflater1 = new Deflater(1);
-        deflater6 = new Deflater();
-        deflater9 = new Deflater(9);
         LZ4Factory lz4Factory = LZ4Factory.fastestInstance();
         lz4 = lz4Factory.fastCompressor();
         lz4hc = lz4Factory.highCompressor();
-        xz6 = new XZEncoder();
-        xz9 = new XZEncoder(9);
 
         if (!GraphicsEnvironment.isHeadless()) {
             robot = new Robot(); // hacky way to keep computer awake
@@ -107,7 +100,7 @@ public class CompressorManager {
         } catch (Exception ignored) {}
         try {
             input = Files.readAllBytes(file.toPath());
-            getMetaData(file.getPath());
+            calcEntropy();
 
             doDeflate(deflater1);
             result.printToConsole();
@@ -142,7 +135,7 @@ public class CompressorManager {
 
         try {
             // test fetcher
-            String dummy = fetcher.fetchType("comprestimator.jar");
+            fetcher.fetchType("comprestimator.jar");
         } catch (IOException e) {
             System.out.println("Will not use unix file command.");
             fetcher = null;
@@ -155,6 +148,7 @@ public class CompressorManager {
         }
 
         System.out.println("Beginning compression loop...");
+        System.out.println("Stop program using CTRL + C if you need to use this computer. You can restart the program whenever");
         File file;
         while((file = fileList.getNext()) != null) {
             try {
@@ -175,12 +169,16 @@ public class CompressorManager {
                 input = Files.readAllBytes(file.toPath()); // turn file into byte[] and get metadata
                 if (input.length == 0)
                     continue; // empty files are useless
-                getMetaData(file.getPath());
+
+                result.setOrigSize(input.length);
+                result.setHash(getHash(input));
+                result.setExt(getExt(file.getPath()));
 
                 if (dbController.contains(result.getHash(), result.getOrigSize())) { // check if file previously seen
                     continue;
                 }
 
+                calcEntropy();
                 compressAndStoreAll();
 
             } catch (SQLException e) {
@@ -197,11 +195,8 @@ public class CompressorManager {
         } // END COMPRESSION LOOP
     }
 
-    private void getMetaData(String pathname) throws Exception {
+    private void calcEntropy() {
         Entropy.calcEntropyAndBC(input);
-        result.setOrigSize(input.length);
-        result.setHash(getHash(input));
-        result.setExt(getExt(pathname));
         result.setBytecount(Entropy.bytecount);
         result.setBytecount2(Entropy.bytecount2);
         result.setEntropy(Entropy.entropy);
@@ -259,10 +254,6 @@ public class CompressorManager {
     public void setFileList(FileList fileList) {
         // assumes fileList is already shuffled
         this.fileList = fileList;
-    }
-
-    public CompressionResult getResult() {
-        return result;
     }
 
     ///////////////////////////////////////////
