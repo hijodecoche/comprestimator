@@ -148,7 +148,7 @@ public class CompressorManager {
         }
 
         System.out.println("Beginning compression loop...");
-        System.out.println("Stop program using CTRL + C if you need to use this computer. You can restart the program whenever");
+        System.out.println("(To stop program, press CTRL + C. You can restart the program whenever.)");
         File file;
         while((file = fileList.getNext()) != null) {
             try {
