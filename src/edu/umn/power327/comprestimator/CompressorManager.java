@@ -14,6 +14,7 @@ import java.nio.file.*;
 import java.security.MessageDigest;
 import java.sql.SQLException;
 import java.util.Random;
+import java.util.Timer;
 import java.util.zip.*;
 
 /**
@@ -132,6 +133,10 @@ public class CompressorManager {
 
         FileWriter fw = null;
         FileTypeFetcher fetcher = new FileTypeFetcher();
+
+        TimeUpdater updater = new TimeUpdater();
+        Timer t = new Timer();
+        t.schedule(updater, TimeUpdater.TIME_INTERVAL * 1000, TimeUpdater.TIME_INTERVAL * 1000); // TIME_INTERVAL is in sec, not millis
 
         try {
             // test fetcher

@@ -30,15 +30,23 @@ public class DBController {
     private PreparedStatement lz4hc_insert;
     private PreparedStatement xz6_insert;
     private PreparedStatement xz9_insert;
+    private PreparedStatement time_insert;
+    private PreparedStatement time_delete;
+    private int filesProcessed;
 
     // TODO: Always change version id when altering this file
     // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
-    public static int VERSION = 201;
+    public static int VERSION = 211;
 
     private DBController() throws SQLException {
         con = DriverManager.getConnection("jdbc:sqlite:test.db");
         createTables();
         prepareStatements();
+        try (ResultSet rs = con.createStatement().executeQuery("SELECT COUNT(*) FROM XZ9_RESULTS;")) {
+            filesProcessed = rs.getInt(1);
+        } catch (SQLException e) {
+            filesProcessed = 0;
+        }
     }
 
     static {
@@ -71,6 +79,8 @@ public class DBController {
 
         xz9_contains = con.prepareStatement("SELECT hash, orig_size FROM " + XZ9
                 + " WHERE hash=? AND orig_size=?;");
+        time_insert = con.prepareStatement("INSERT OR IGNORE INTO elapsed_time VALUES(?);");
+        time_delete = con.prepareStatement("DELETE FROM elapsed_time WHERE e_time < ?;");
     }
 
     /**
@@ -106,6 +116,9 @@ public class DBController {
             stmt.execute("CREATE TABLE IF NOT EXISTS " + XZ6 + "(\n" + defaultSchema);
             stmt.execute("CREATE TABLE IF NOT EXISTS " + XZ9 + "(\n" + defaultSchema);
 
+            // create elapsed time table
+            stmt.execute("CREATE TABLE IF NOT EXISTS elapsed_time (e_time INTEGER NOT NULL);");
+
         }
     }
 
@@ -126,6 +139,7 @@ public class DBController {
         ps.setInt(8, result.getBytecount2());
         ps.setDouble(9, result.getEntropy());
         ps.executeUpdate();
+        filesProcessed++;
     }
 
     public void insertDeflate1 (CompressionResult result) throws SQLException {
@@ -184,19 +198,6 @@ public class DBController {
         } catch (SQLException ignored) {}
     }
 
-    /**
-     * Deletes an entry from all tables using primary key (hash, origSize).
-     * @param hash hash value of file
-     * @param origSize original size of file
-     */
-    public void deleteFromAll(String hash, long origSize) {
-        String[] tables = {DEFLATE1, DEFLATE6, DEFLATE9, LZ4, LZ4HC, XZ6, XZ9};
-
-        for(String table : tables) {
-            deleteResult(table, hash, origSize);
-        }
-    }
-
     public void updateStartIndex(int index) throws SQLException {
         try (Statement s = con.createStatement()) {
             s.execute("PRAGMA user_version = " + index + ";");
@@ -221,5 +222,34 @@ public class DBController {
         }
 
         return Integer.MAX_VALUE; // convinces DB that this version is incompatible
+    }
+
+    /**
+     * Encapsulating this logic in DBController breaks good coding practices, but it allows
+     * for much more accurate elapsed timing.
+     *
+     * @param time elapsed time in seconds
+     */
+    public void updateTime(int time) {
+        try {
+            time_insert.setInt(1, time);
+            time_insert.executeUpdate();
+
+            time_delete.setInt(1, time);
+            time_delete.executeUpdate();
+        } catch (SQLException ignored) { }
+    }
+
+    public int getElapsedTime() {
+        try (Statement s = con.createStatement()) {
+            try (ResultSet rs = s.executeQuery("SELECT MAX(e_time) FROM elapsed_time;")) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            return 0;
+        }
+    }
+    public int getFilesProcessed() {
+        return filesProcessed;
     }
 }
