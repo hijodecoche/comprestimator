@@ -32,7 +32,8 @@ public class StatusUpdater extends TimerTask {
     private void printStatusToUser() {
         System.out.println("\t------------------------------");
         System.out.println("Comprestimator has run for " + threshold / 2.0 + " hours and has processed "
-                + dbController.getFilesProcessed() + " files, about " + fileList.getPercentFilesProcessed() + "% of its list.");
+                + dbController.getFilesProcessed() + " files, about "
+                + String.format("%.2f", fileList.getPercentFilesProcessed()) + "% of its list.");
         System.out.println("You can cancel using CTRL + C and restart later if you wish.");
         System.out.println("Resuming compression...");
     }

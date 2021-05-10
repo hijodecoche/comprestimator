@@ -193,7 +193,7 @@ public class FileList {
     }
 
     public double getPercentFilesProcessed() {
-        return (double) startIndex / listLength;
+        return 100.0 * startIndex / listLength;
     }
 
     private static class StreamGobbler implements Runnable {
