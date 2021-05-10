@@ -3,7 +3,9 @@ package edu.umn.power327.comprestimator.files;
 import edu.umn.power327.comprestimator.database.DBController;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -13,14 +15,31 @@ import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class FileList {
 
     private BufferedReader reader;
     private final DBController dbController = DBController.getInstance();
     private int startIndex;
+    private final int listLength;
+    private static FileList fileList;
 
-    public FileList() throws Exception {
+    static {
+        try {
+            fileList = new FileList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static FileList getInstance() {
+        return fileList;
+    }
+
+    private FileList() throws Exception {
+
+        System.out.println("Beginning filesystem enumeration...");
 
         try {
             FileReader fr = new FileReader("enumeration.dat");
@@ -58,6 +77,15 @@ public class FileList {
             FileReader fr = new FileReader("enumeration.dat");
             reader = new BufferedReader(fr);
         }
+
+        // CALCULATE LIST LENGTH
+        try (Stream<String> stream = Files.lines(new File("enumeration.dat").toPath(), StandardCharsets.UTF_8)) {
+            listLength = (int) stream.count();
+        }
+
+        // INFORM USER
+        System.out.println("...enumeration complete.");
+        System.out.flush();
     }
 
     public void enumFiles(ArrayList<String> fileList) throws Exception {
@@ -162,6 +190,10 @@ public class FileList {
             }
         }
         return true;
+    }
+
+    public double getPercentFilesProcessed() {
+        return (double) startIndex / listLength;
     }
 
     private static class StreamGobbler implements Runnable {

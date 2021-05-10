@@ -51,16 +51,10 @@ public class Main {
             return;
         }
 
-        System.out.println("Beginning filesystem enumeration...");
-        FileList fileList = new FileList();
-        System.out.println("...enumeration complete.");
-        System.out.flush();
-
 
         // CREATE COMPRESSION MANAGER
         cm = new CompressorManager(listFiles);
 
-        cm.setFileList(fileList); // give compression manager the list
         if (useTestVector) {
             cm.compressTestVectors();
         }

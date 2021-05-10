@@ -1,22 +1,24 @@
 package edu.umn.power327.comprestimator;
 
 import edu.umn.power327.comprestimator.database.DBController;
+import edu.umn.power327.comprestimator.files.FileList;
 
 import java.util.TimerTask;
 
-public class TimeUpdater extends TimerTask {
+public class StatusUpdater extends TimerTask {
 
-    public static final int TIME_INTERVAL = 3600; // 3600 sec == 1 hr
+    public static final int TIME_INTERVAL = 1800; // 1800 sec == 0.5 hr
 
     final DBController dbController = DBController.getInstance();
-    private int elapsedTime = dbController.getElapsedTime();
-    private int threshold = elapsedTime / TIME_INTERVAL; // threshold for when we print status (in sec)
+    final FileList fileList = FileList.getInstance();
+    private final int prevElapsed = dbController.getElapsedTime();
+    private int threshold = prevElapsed / TIME_INTERVAL; // threshold for when we print status (in sec)
     private final long startTime = System.currentTimeMillis();
 
     @Override
     public void run() {
-        elapsedTime += (int)(System.currentTimeMillis() - startTime) / 60; // seconds, not millis
-        dbController.updateTime(elapsedTime);
+        int elapsedTime = (int) (System.currentTimeMillis() - startTime) / 1000; // seconds, not millis
+        dbController.updateTime(elapsedTime + prevElapsed);
         if (elapsedTime / TIME_INTERVAL > threshold) {
             threshold++;
             printStatusToUser();
@@ -29,8 +31,8 @@ public class TimeUpdater extends TimerTask {
      */
     private void printStatusToUser() {
         System.out.println("\t------------------------------");
-        System.out.println("Comprestimator has run for about " + threshold + " hours and has processed "
-                + dbController.getFilesProcessed() + " files.");
+        System.out.println("Comprestimator has run for " + threshold / 2.0 + " hours and has processed "
+                + dbController.getFilesProcessed() + " files, about " + fileList.getPercentFilesProcessed() + "% of its list.");
         System.out.println("You can cancel using CTRL + C and restart later if you wish.");
         System.out.println("Resuming compression...");
     }

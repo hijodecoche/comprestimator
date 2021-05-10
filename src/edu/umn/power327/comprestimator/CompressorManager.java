@@ -32,7 +32,6 @@ public class CompressorManager {
     private final XZEncoder xz9 = new XZEncoder(9);
 
     private final CompressionResult result = new CompressionResult();
-    private FileList fileList;
     private byte[] input;
     private final byte[] output = new byte[1610612736]; // 1.5 GB
     private long start, stop;
@@ -131,12 +130,13 @@ public class CompressorManager {
 
     public void beginLoop() throws Exception {
 
+        FileList fileList = FileList.getInstance();
         FileWriter fw = null;
         FileTypeFetcher fetcher = new FileTypeFetcher();
 
-        TimeUpdater updater = new TimeUpdater();
+        StatusUpdater updater = new StatusUpdater();
         Timer t = new Timer();
-        t.schedule(updater, TimeUpdater.TIME_INTERVAL * 1000, TimeUpdater.TIME_INTERVAL * 1000); // TIME_INTERVAL is in sec, not millis
+        t.schedule(updater, StatusUpdater.TIME_INTERVAL * 1000, StatusUpdater.TIME_INTERVAL * 1000); // TIME_INTERVAL is in sec, not millis
 
         try {
             // test fetcher
@@ -154,6 +154,7 @@ public class CompressorManager {
 
         System.out.println("Beginning compression loop...");
         System.out.println("(To stop program, press CTRL + C. You can restart the program whenever.)");
+
         File file;
         while((file = fileList.getNext()) != null) {
             try {
@@ -254,11 +255,6 @@ public class CompressorManager {
 
             System.out.println("Done compressing random vector.");
         }
-    }
-
-    public void setFileList(FileList fileList) {
-        // assumes fileList is already shuffled
-        this.fileList = fileList;
     }
 
     ///////////////////////////////////////////
