@@ -136,7 +136,7 @@ public class CompressorManager {
 
         StatusUpdater updater = new StatusUpdater();
         Timer t = new Timer();
-        t.schedule(updater, StatusUpdater.TIME_INTERVAL * 1000, StatusUpdater.TIME_INTERVAL * 1000); // TIME_INTERVAL is in sec, not millis
+        t.schedule(updater, 0, StatusUpdater.TIME_INTERVAL * 1000); // TIME_INTERVAL is in sec, not millis
 
         try {
             // test fetcher
