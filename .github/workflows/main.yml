@@ -28,5 +28,7 @@ jobs:
         with:
           java-version: '8'
           distribution: 'adopt'
+      - name: Set jdk.home
+        run: echo 'jdk.home = /usr/lib/jvm/java8-openjdk-amd64' > build.properties
       - name: Build with Ant
         run: ant -noinput -buildfile build.xml
