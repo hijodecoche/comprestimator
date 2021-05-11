@@ -17,8 +17,8 @@ public class StatusUpdater extends TimerTask {
 
     @Override
     public void run() {
-        int elapsedTime = (int) (System.currentTimeMillis() - startTime) / 1000; // seconds, not millis
-        dbController.updateTime(elapsedTime + prevElapsed);
+        int elapsedTime = (int) (System.currentTimeMillis() - startTime) / 1000 + prevElapsed; // seconds, not millis
+        dbController.updateTime(elapsedTime);
         if (elapsedTime / TIME_INTERVAL >= threshold) {
             printStatusToUser();
             threshold++;
