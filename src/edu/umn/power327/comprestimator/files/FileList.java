@@ -79,7 +79,7 @@ public class FileList {
         }
 
         // CALCULATE LIST LENGTH
-        try (Stream<String> stream = Files.lines(new File("enumeration.dat").toPath(), StandardCharsets.UTF_8)) {
+        try (Stream<String> stream = Files.lines(new File("enumeration.dat").toPath(), StandardCharsets.ISO_8859_1)) {
             listLength = (int) stream.count();
         }
 
@@ -125,7 +125,7 @@ public class FileList {
                 process = pb.start();
                 StreamGobbler gobbler = new StreamGobbler(process.getInputStream(), skiplist, fileList::add);
                 Executors.newSingleThreadExecutor().submit(gobbler);
-                int exit = process.waitFor();
+                int exit = process.waitFor(); // leave the int there or the process won't terminate
             } catch (IOException ignored) {}
         }
     }
@@ -142,7 +142,7 @@ public class FileList {
 
         StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), skiplist, fileList::add);
         Executors.newSingleThreadExecutor().submit(streamGobbler);
-        int exit = process.waitFor();
+        int exit = process.waitFor(); // leave the int there or the process won't terminate
     }
 
     /**

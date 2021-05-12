@@ -37,7 +37,7 @@ public class Main {
             }
         }
 
-        CompressorManager cm; // delay creation in case this is a single file test
+        CompressorManager cm; // delay instantiation in case this is a single file test
 
         if (singleFileTest) {
             Scanner scanner = new Scanner(System.in);
@@ -55,6 +55,7 @@ public class Main {
         // CREATE COMPRESSION MANAGER
         cm = new CompressorManager(listFiles);
 
+        // COMPRESS TEST VECTORS
         if (useTestVector) {
             cm.compressTestVectors();
         }
