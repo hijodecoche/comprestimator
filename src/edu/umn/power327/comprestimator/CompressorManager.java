@@ -199,6 +199,7 @@ public class CompressorManager {
             } catch (OutOfMemoryError | IOException ignored) { }
 
         } // END COMPRESSION LOOP
+        t.cancel(); // cancel timer
     }
 
     private void calcEntropy() {
