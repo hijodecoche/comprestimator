@@ -235,12 +235,12 @@ public class CompressorManager {
 
     public void compressTestVectors() throws Exception {
         // COMPRESS ZERO VECTOR
-        if (!dbController.contains("0", 1)) {
+        if (!dbController.contains("0", 1024)) {
             System.out.println("Compressing zero vector...");
             input = new byte[268435456]; // 256 mb, auto initialized to zeros
             result.setHash("0");
             result.setExt("");
-            result.setOrigSize(1);
+            result.setOrigSize(1024); // prevents getting deleted as small file
 
             compressAndStoreAll();
 

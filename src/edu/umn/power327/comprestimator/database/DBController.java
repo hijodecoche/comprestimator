@@ -36,7 +36,7 @@ public class DBController {
 
     // TODO: Always change version id when altering this file
     // The hundreds determines compatibility, e.g. 210 incompatible with 199, 100 compatible with 199
-    public static int VERSION = 221;
+    public static int VERSION = 222;
 
     private DBController() throws SQLException {
         con = DriverManager.getConnection("jdbc:sqlite:test.db");
