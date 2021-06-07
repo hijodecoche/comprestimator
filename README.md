@@ -9,6 +9,7 @@
 - The latest Java Runtime Environment (JRE).  This should run on anything that supports JRE 8 or higher.
 - If you wish to build from source, see Building from Source below
 
+
 ## Before you run it
   You will not be able to use your computer while this is running.  We highly recommend running this overnight.  It takes many, many hours.
   If you need to stop the program early, press Ctrl + C.  This should halt the program.
@@ -19,9 +20,6 @@ Instead of storing file names, comprestimator will store a file's hash value, wh
 
 ### Skip List
 We do not record the names of files processed, nor do we store any of the data that the files contain.  However, if you have some files that you don't want comprestimator to touch at all, you can enter the file location(s) in `skip_list.txt`.  See the instructions in "How to run it" to use the skip list.
-
-## How to participate
-If you would like to participate in our study, please read and sign the electronic consent form [available here](https://forms.gle/kzrZGrUJSHQ8QpXU8).  Once you sign up, we will send you a link to a private Google Drive folder where you can upload your compression database when you are done running the tool.
 
 ## How to run it
 **WARNING: Comprestimator will take many hours to finish.  If you need to use your computer before the program has finished running, hit `Ctrl + C`.** You can restart the program later, and it will pick up where it left off.
@@ -41,9 +39,12 @@ If you would like to participate in our study, please read and sign the electron
      the results from the experiment!  
   5. I recommend compressing test.db before sending it.  To do this, right click on the file, and select "send to compressed 
      (zipped) folder."
-  6. Drop it in the Google Drive folder assigned to you.  Email me at power327@d.umn.edu if you need help.  Thank you!
-  
-  
+  6. Fill out the [consent form](https://forms.gle/kzrZGrUJSHQ8QpXU8). Once we get a form from you, we will email you a link to a private Google Drive folder where you can upload the DB file.  Email me at power327@d.umn.edu if you need help.  Thank you!
+
+
+## How to participate
+If you would like to participate in our study, please read and sign the electronic consent form [available here](https://forms.gle/kzrZGrUJSHQ8QpXU8).  Once you sign up, we will send you a link to a private Google Drive folder where you can upload your compression database when you are done running the tool.
+
   ### Linux/Mac
   1. Open a terminal.  Navigate to the directory that contains comprestimator.jar.
   1. If there are any folders that you do not want comprestimator to touch, enter the full pathname of each folder on a separate line in the file `skip_list.txt`.  Careful!  The skip list is case sensitive!
@@ -53,7 +54,7 @@ If you would like to participate in our study, please read and sign the electron
      program to use your computer, hit `Ctrl + C`.</b> You can safely restart the program later (this will not corrupt or overwrite any previous results).
   4. When the program is finished running, you will see a new file called "test.db".  Zip this file however you like (gzip
      works well).
-  5. Drop the zipped file in the Google Drive folder assigned to you.  Email me at power327@d.umn.edu if you need help.  Thank you!
+  5. Fill out the [consent form](https://forms.gle/kzrZGrUJSHQ8QpXU8).  Once we get a form from you, we will email you a link to a private Google Drive folder where you can upload the DB file.  Email me at power327@d.umn.edu if you need help.  Thank you!
   
 ## Building from source
 You're more than welcome to build from source if you wish!  We've tried to make it as easy as possible.  All you will need is `ant` and JDK 8 or higher.  Once you have cloned the git repo, you'll need to create a file called `build.properties` in the same directory as `build.xml`.  In `build.properties`, write the line
