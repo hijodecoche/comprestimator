@@ -1,30 +1,44 @@
 ## Thank you for volunteering in this experiment! You are a good person!
 
 ## About Comprestimator
-  This program is part of an experiment to learn how real-world files compress.  When run on a machine, it feeds every file on the system through five different file compressors to see how well the file compresses and how long it takes the file to compress.
+
+This program is part of an experiment to learn how real-world files compress.  When run on a machine, it feeds every file on the system through five different file compressors to see how well the file compresses and how long it takes the file to compress. We're doing this to learn information about how files compress so that we can help make computers more efficient.
+
+Comprestimator is very easy to run. Read on for more information.
   
 
 ## What you need
 - Download the zip folder with all the necessary tools [here](https://github.com/hijodecoche/comprestimator/raw/master/comprestimator.zip).
-- The latest Java Runtime Environment (JRE).  This should run on anything that supports JRE 8 or higher.
+- The latest Java Runtime Environment (JRE).  This should run on anything that supports JRE 8 or higher, including Windows, Mac, and Linux.
 - If you wish to build from source, see Building from Source below
 
+## How to participate in our study
+If you would like to participate in our study, please read and sign the electronic consent form [available here](https://forms.gle/kzrZGrUJSHQ8QpXU8).  Once you sign up, we will send you a link to a private Google Drive folder where you can upload your compression database when you are done running the tool.
 
-## Before you run it
-  You will not be able to use your computer while this is running.  We highly recommend running this overnight.  It takes many, many hours.
-  If you need to stop the program early, press Ctrl + C.  This should halt the program.
-### Privacy Protection
-Though we do not track or store file names or file locations on your system, we do collect some information that could be used to guess what type of information <i>may</i> exist on your system.  For this reason, we will not distribute this data to anyone not part of the Comprestimator study.
+### How we protect your privacy
+
+Comprestimator does not send file names or contents to us, and you can specify files to skip if you wish. See below for more information.
+
+#### Anonymization
+Though we do not track or store file names or file locations on your system, we do collect some information that could be used to guess what type of information <i>may</i> exist on your system. For this reason, we will not distribute this data to anyone not part of the Comprestimator study.
 
 Instead of storing file names, comprestimator will store a file's hash value, which is like a unique file fingerprint.  This fingerprint cannot tell us the name, location, or content of the original file.  (If you would like to know more about how hash functions work, visit the Wikipedia article on cryptographic hash functions: https://en.wikipedia.org/wiki/Cryptographic_hash_function).  Besides storing the file's hash, this program will record the file's original size, its compressed size, and the amount of time needed to compress the file.  All of this information will be stored locally on an SQLite database file.
 
-### Skip List
+#### Skipping Specific Files
+
 We do not record the names of files processed, nor do we store any of the data that the files contain.  However, if you have some files that you don't want comprestimator to touch at all, you can enter the file location(s) in `skip_list.txt`.  See the instructions in "How to run it" to use the skip list.
 
 ## How to run it
-**WARNING: Comprestimator will take many hours to finish.  If you need to use your computer before the program has finished running, hit `Ctrl + C`.** You can restart the program later, and it will pick up where it left off.
 
-  ### Windows
+Comprestimator will take **many hours to finish**, and you will **not be able to use your computer while this is running**. Therefore, we highly recommend running this over the course of two or more nights.
+
+Comprestimator will quit after testing every file. But, **If you need to stop the program early, press Ctrl + C**.  
+
+You can restart the program at any convenient time and it will pick up where it left off. 
+
+If you have run the program for a few nights and it still hasn't finished, that's OK -- partial results (especially from a few nights) are still very valuable!
+
+   ### Windows
   
   (note: if you have Windows Subsystem for Linux (WSL), I recommend using WSL so that we can gather `file` command metadata.  If you do not know what WSL is, disregard this request.)
     
@@ -41,10 +55,6 @@ We do not record the names of files processed, nor do we store any of the data t
      (zipped) folder."
   6. Fill out the [consent form](https://forms.gle/kzrZGrUJSHQ8QpXU8). Once we get a form from you, we will email you a link to a private Google Drive folder where you can upload the DB file.  Email me at power327@d.umn.edu if you need help.  Thank you!
 
-
-## How to participate
-If you would like to participate in our study, please read and sign the electronic consent form [available here](https://forms.gle/kzrZGrUJSHQ8QpXU8).  Once you sign up, we will send you a link to a private Google Drive folder where you can upload your compression database when you are done running the tool.
-
   ### Linux/Mac
   1. Open a terminal.  Navigate to the directory that contains comprestimator.jar.
   1. If there are any folders that you do not want comprestimator to touch, enter the full pathname of each folder on a separate line in the file `skip_list.txt`.  Careful!  The skip list is case sensitive!
@@ -56,13 +66,19 @@ If you would like to participate in our study, please read and sign the electron
      works well).
   5. Fill out the [consent form](https://forms.gle/kzrZGrUJSHQ8QpXU8).  Once we get a form from you, we will email you a link to a private Google Drive folder where you can upload the DB file.  Email me at power327@d.umn.edu if you need help.  Thank you!
   
-## Building from source
+## Expert Mode Options
+  
+### Building from source (Optional - Expert Only)
 You're more than welcome to build from source if you wish!  We've tried to make it as easy as possible.  All you will need is `ant` and JDK 8 or higher.  Once you have cloned the git repo, you'll need to create a file called `build.properties` in the same directory as `build.xml`.  In `build.properties`, write the line
 ```jdk.home=pathToYourJDK``` substituting the path to the JDK on your machine (it should look like `jdk.home=/usr/lib/jvm/java-8-openjdk` or something similar.  Don't add a '/' at the end of the line!
 
 Once you've created `build.properties`, in a command line, run `ant`.  If everything goes well, you should see `BUILD SUCCESSFUL`.  All dependencies should be included in the git repo, so you shouldn't need to download anything else.  The JAR will be in `out/artifacts/comprestimator_jar`.  Wherever you put the JAR, make sure you move either `run.sh` or `run.bat` to the same directory.
   
-## Viewing results
+### Viewing Your Results (Optional - Expert Only)
 If you want to see the data comprestimator has stored, you will need to [download SQLite3](https://www.sqlite.org/download.html).  Once you have downloaded and unzipped the file (or built the code from source), open a terminal, nagivate to the folder that contains test.db, and enter `sqlite3 test.db`.  To see a few results gathered, enter `select * from lz4_results limit 10;`. Without `limit 10` you will likely get a list of about 100,000 results.  What you are seeing is the file's hash value (about 64 letters and numbers of gobbldeegook), the file extension (e.g. pdf, doc, jpg, etc.), and some numbers representing the size of the file before and after compressing and how long compression took.  **The names of your files and their contents are never stored.**
 
-If this is overwhelming, email power327@d.umn.edu and ask for assistance.  We are also happy to send you the entire database dumped as a text file.
+We are also happy to send you the entire database dumped as a text file.
+
+## Have Questions?
+
+If you have any questions, email power327@d.umn.edu or pahp@d.umn.edu and we'll be happy to help! 
