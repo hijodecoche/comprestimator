@@ -2,7 +2,7 @@
 
 ## About Comprestimator
 
-This program is part of an experiment to learn how real-world files compress.  When run on a machine, it feeds every file on the system through five different file compressors to see how well the file compresses and how long it takes the file to compress. We're doing this to learn information about how files compress so that we can help make computers more efficient.
+This program is part of an experiment to learn how real-world files compress.  When run on a machine, it feeds every file on the system through seven different file compressors to see how well the file compresses and how long it takes the file to compress. We're doing this to learn information about how files compress so that we can help make computers more efficient.
 
 Comprestimator is very easy to run. Read on for more information.
   
