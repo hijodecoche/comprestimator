@@ -3,13 +3,6 @@
 ## About Comprestimator
   This program is part of an experiment to learn how real-world files compress.  When run on a machine, it feeds every file on the system through five different file compressors to see how well the file compresses and how long it takes the file to compress.
   
-## Privacy Protection
-Though we do not track or store file names or file locations on your system, we do collect some information that could be used to guess what type of information <i>may</i> exist on your system.  For this reason, we will not distribute this data to anyone not part of the Comprestimator study. 
-
-Instead of storing file names, comprestimator will store a file's hash value, which is like a unique file fingerprint.  This fingerprint cannot tell us the name, location, or content of the original file.  (If you would like to know more about how hash functions work, visit the Wikipedia article on cryptographic hash functions: https://en.wikipedia.org/wiki/Cryptographic_hash_function).  Besides storing the file's hash, this program will record the file's original size, its compressed size, and the amount of time needed to compress the file.  All of this information will be stored locally on an SQLite database file.
-
-### Skip List
-We do not record the names of files processed, nor do we store any of the data that the files contain.  However, if you have some files that you don't want comprestimator to touch at all, you can enter the file location(s) in `skip_list.txt`.  See the instructions in "How to run it" to use the skip list.
 
 ## What you need
 - Download the zip folder with all the necessary tools [here](https://github.com/hijodecoche/comprestimator/raw/master/comprestimator.zip).
@@ -19,7 +12,14 @@ We do not record the names of files processed, nor do we store any of the data t
 ## Before you run it
   You will not be able to use your computer while this is running.  We highly recommend running this overnight.  It takes many, many hours.
   If you need to stop the program early, press Ctrl + C.  This should halt the program.
-  
+### Privacy Protection
+Though we do not track or store file names or file locations on your system, we do collect some information that could be used to guess what type of information <i>may</i> exist on your system.  For this reason, we will not distribute this data to anyone not part of the Comprestimator study.
+
+Instead of storing file names, comprestimator will store a file's hash value, which is like a unique file fingerprint.  This fingerprint cannot tell us the name, location, or content of the original file.  (If you would like to know more about how hash functions work, visit the Wikipedia article on cryptographic hash functions: https://en.wikipedia.org/wiki/Cryptographic_hash_function).  Besides storing the file's hash, this program will record the file's original size, its compressed size, and the amount of time needed to compress the file.  All of this information will be stored locally on an SQLite database file.
+
+### Skip List
+We do not record the names of files processed, nor do we store any of the data that the files contain.  However, if you have some files that you don't want comprestimator to touch at all, you can enter the file location(s) in `skip_list.txt`.  See the instructions in "How to run it" to use the skip list.
+
 ## How to participate
 If you would like to participate in our study, please read and sign the electronic consent form [available here](https://forms.gle/kzrZGrUJSHQ8QpXU8).  Once you sign up, we will send you a link to a private Google Drive folder where you can upload your compression database when you are done running the tool.
 
