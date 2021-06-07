@@ -12,7 +12,7 @@ Instead of storing file names, comprestimator will store a file's hash value, wh
 We do not record the names of files processed, nor do we store any of the data that the files contain.  However, if you have some files that you don't want comprestimator to touch at all, you can enter the file location(s) in `skip_list.txt`.  See the instructions in "How to run it" to use the skip list.
 
 ## What you need
-- Download the zip folder with all the necessary tools [here]('https://github.com/hijodecoche/comprestimator/raw/master/comprestimator.zip').
+- Download the zip folder with all the necessary tools [here](https://github.com/hijodecoche/comprestimator/raw/master/comprestimator.zip).
 - The latest Java Runtime Environment (JRE).  This should run on anything that supports JRE 8 or higher.
 - If you wish to build from source, see Building from Source below
 
